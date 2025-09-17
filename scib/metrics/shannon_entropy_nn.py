@@ -25,8 +25,10 @@ def shannon_entropy_nn(adata, batch_key, label_key, k=None, embed=None):
     check_batch(batch_key, adata.obs)
     check_batch(label_key, adata.obs)
 
+    graph_key = 'distances'
     if k is not None:
-        sc.pp.neighbors(adata, n_neighbors=k, use_rep=embed)
+        sc.pp.neighbors(adata, n_neighbors=k, use_rep=embed, key_added='shannon_distances')
+        graph_key = 'shannon_distances'
 
     batches = adata.obs[batch_key].astype("category").cat.codes
     labels = adata.obs[label_key].astype("category").cat.codes
@@ -34,7 +36,7 @@ def shannon_entropy_nn(adata, batch_key, label_key, k=None, embed=None):
 
     batch_entropy = []
     celltype_entropy = []
-    knn_graph = adata.obsp['distances']
+    knn_graph = adata.obsp[graph_key]
 
     for i in range(knn_graph.shape[0]):
         row = knn_graph.getrow(i)
