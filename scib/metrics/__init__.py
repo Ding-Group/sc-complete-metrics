@@ -54,6 +54,7 @@ from .v_measure               import v_measure
 from .batch_ari               import batch_ari
 from .batch_purity_score      import batch_purity_score
 from .scaled_variance         import scaled_variance
+from .variation_of_information import variation_of_information
 
 # fmt: on
 

@@ -1,6 +1,7 @@
 import scanpy as sc
 import numpy as np
 
+
 def adgbd(adata, batch_key, n_neighbors=None, embed=None):
     """Average deviation from global batch distribution
 
@@ -18,11 +19,11 @@ def adgbd(adata, batch_key, n_neighbors=None, embed=None):
         )
         graph_key = "adgbd_distances"
     else:
-        n_neighbors = adata.uns["neighbors"]['params']["n_neighbors"]
+        n_neighbors = adata.uns["neighbors"]["params"]["n_neighbors"]
         graph_key = "distances"
 
     knn_graph = adata.obsp[graph_key]
-    # Cell counts in order to adjust threshold if fewer than n_neighbors 
+    # Cell counts in order to adjust threshold if fewer than n_neighbors
     # cells in the data
     batch_counts = adata.obs[batch_key].value_counts(normalize=True)
     neighbors = [
@@ -32,10 +33,13 @@ def adgbd(adata, batch_key, n_neighbors=None, embed=None):
 
     scores = []
     for i, indices in enumerate(neighbors):
-        indices = indices[1:] # exclude self
+        indices = indices[1:]  # exclude self
 
         batch = adata.obs[batch_key].iloc[i]
 
-        score = 1 - np.abs((adata.obs[batch_key].iloc[indices] == batch).sum() / n_neighbors - batch_counts.loc[batch])
+        score = 1 - np.abs(
+            (adata.obs[batch_key].iloc[indices] == batch).sum() / n_neighbors
+            - batch_counts.loc[batch]
+        )
         scores.append(score)
     return np.mean(scores)

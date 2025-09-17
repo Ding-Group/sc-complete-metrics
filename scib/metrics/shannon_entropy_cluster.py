@@ -67,7 +67,7 @@ def celltype_shannon_entropy(
         sub = labels[clusters == c]
         _, counts = np.unique(sub, return_counts=True)
         freqs = counts / counts.sum()
-        h = entropy(freqs)
+        h = entropy(freqs, base=np.e)
         score += (n_c / N) * h
 
     if normalize and max_ent > 0:

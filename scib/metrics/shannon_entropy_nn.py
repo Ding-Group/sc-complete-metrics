@@ -64,7 +64,7 @@ def entropy_(selected_labels, n_labels):
     freqs = counts / counts.sum()
 
     # Shannon entropy (base = natural log, matches R log())
-    h = entropy(freqs)
+    h = entropy(freqs, base=np.e)
 
     # Normalize by log(n_labels)
     return h / np.log(n_labels)
