@@ -70,7 +70,7 @@ def over_correction(
 
     graph_key = 'distances'
     if k is not None:
-        sc.pp.neighbors(adata, n_neighbors=k, use_rep=embed, key_added='oc_distances')
+        sc.pp.neighbors(adata, n_neighbors=k, use_rep=embed, key_added='oc')
         graph_key = 'oc_distances'
     else:
         k = adata.uns['neighbors']['params']['n_neighbors']

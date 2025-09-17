@@ -26,7 +26,7 @@ def pptpc(adata, batch_key, label_key, embed=None, n_neighbors=100):
         )
         graph_key = "pptpc_distances"
     else:
-        n_neighbors = adata.uns["neighbors"]["n_neighbors"]
+        n_neighbors = adata.uns["neighbors"]['params']["n_neighbors"]
         graph_key = "distances"
 
     # Categorize cells into "positive" and "negative" cells, where positive
