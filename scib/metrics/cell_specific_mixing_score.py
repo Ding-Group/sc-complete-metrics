@@ -1,0 +1,194 @@
+from ..utils import check_adata
+import numpy as np
+import scanpy as sc
+import scipy.sparse as sp
+
+
+def cell_specific_mixing_score(
+    adata,
+    batch_key,
+    embed,
+    k=20,
+    n_dim=None,
+    dim_red_name="PCA",
+    k_min=None,          # maps to R NA
+    batch_min=None,      # maps to R NULL
+    cell_min=10,
+    smooth=True,
+    unbalanced=False,
+    res_name=None,
+    return_per_cell=False,
+    r_run_pca_when_embed_missing=False,
+):
+    """Cell-specific mixing score (CMS) wrapper around CellMixS::cms via rpy2.
+
+    Computes kNN in a subspace (default PCA) and compares groupwise distance
+    distributions using the K-sample Anderson-Darling test.
+
+    Behavior
+    --------
+    - If a reduced dimension named ``dim_red_name`` exists, use it.
+    - Else if ``r_run_pca_when_embed_missing=True``, pass expression to R and let
+      ``scater::runPCA`` compute PCA on the ``logcounts`` assay.
+    - Otherwise compute PCA in Python (Scanpy) and pass it as
+      ``reducedDim(sce, dim_red_name)``.
+
+    Parameters
+    ----------
+    adata : AnnData
+        Cells x genes matrix and metadata.
+    batch_key : str
+        Column in ``adata.obs`` with batch/group labels.
+    k : int
+        Number of nearest neighbors (required).
+    embed : str, optional
+        Key in ``adata.obsm`` for the embedding to use (default ``"X_pca"``).
+    n_dim : int, optional
+        Number of embedding dimensions to use (default all).
+    dim_red_name : str, optional
+        Name for ``reducedDim`` in the SCE (default ``"PCA"``).
+    k_min : int or None, optional
+        Minimum neighbors for density-adaptive neighborhood. ``None`` → R ``NA``.
+    batch_min : int or None, optional
+        Minimum cells per batch in the neighborhood. ``None`` → R ``NULL``.
+    cell_min : int, optional
+        Minimum cells from each group for the AD test (default 10).
+    smooth : bool, optional
+        Smooth CMS within each neighborhood (default True).
+    unbalanced : bool, optional
+        If True, single-batch neighborhoods are set to NA (default False).
+    res_name : str or None, optional
+        Suffix for result column (``cms`` or ``cms.<res_name>``).
+    return_per_cell : bool, optional
+        If True return the per-cell vector, else return the NaN-mean.
+    r_run_pca_when_embed_missing : bool, optional
+        Let R compute PCA if embedding is absent.
+
+    Returns
+    -------
+    np.ndarray or float
+        Per-cell CMS vector (if ``return_per_cell=True``) or mean CMS.
+
+    Raises
+    ------
+    RuntimeError
+        If rpy2/R/CellMixS are unavailable or the R call fails.
+    """
+    # Step 1: checks & embedding
+    check_adata(adata)
+
+    # Ensure an embedding exists if we don't want R to run PCA.
+    if embed not in adata.obsm and not r_run_pca_when_embed_missing:
+        # Keep a buffer of PCs to safely cover n_dim.
+        sc.pp.pca(adata, n_comps=max(n_dim, 50))
+        embed = "X_pca"
+
+    if n_dim is None:
+        n_dim = adata.obsm[embed].shape[1]
+
+    # Normalize embedding: dense float (cells × dims), first n_dim columns.
+    X_embed = None
+    if embed in adata.obsm:
+        X_embed = np.asarray(adata.obsm[embed], dtype=float)
+        if X_embed.shape[1] < n_dim:
+            n_dim = X_embed.shape[1]
+        X_embed = X_embed[:, :n_dim]
+
+    # Batch labels and cell names (R will factor + droplevels).
+    batch = adata.obs[batch_key].astype("category").astype(str).to_numpy()
+    cell_names = adata.obs_names.to_list()
+
+    # Step 2: rpy2 bridge
+    try:
+        import rpy2.robjects as ro
+        from rpy2.robjects.packages import importr
+        from rpy2.robjects import numpy2ri, StrVector, NA_Real
+        from rpy2.robjects import conversion, default_converter
+        from rpy2.robjects import numpy2ri
+    except Exception as e:
+        raise RuntimeError(
+            "rpy2 is required but not available. Install with `pip install rpy2`."
+        ) from e
+
+    numpy_converter = default_converter + numpy2ri.converter
+    with conversion.localconverter(numpy_converter):
+        # Step 3–5: build SCE in R → map params → call CellMixS::cms
+        try:
+            importr("SingleCellExperiment")
+            importr("SummarizedExperiment")
+            importr("BiocParallel")
+            importr("CellMixS")
+            r = ro.r
+
+            # 3.Build SCE (minimal when embedding is provided).
+            n_cells = adata.n_obs
+            r.assign("n_cells", int(n_cells))
+
+            if X_embed is not None:
+                r('sce <- SingleCellExperiment::SingleCellExperiment('
+                'assays = list(logcounts = matrix(0, nrow=1, ncol=n_cells)))')
+            else:
+                if not r_run_pca_when_embed_missing:
+                    raise RuntimeError(
+                        "Missing embedding with r_run_pca_when_embed_missing=False."
+                    )
+                X_expr = adata.X
+                if sp.issparse(X_expr):
+                    X_expr = X_expr.toarray()
+                X_expr = np.asarray(X_expr, dtype=float).T  # genes × cells
+                r.assign("logcounts_mat", X_expr)
+                r('sce <- SingleCellExperiment::SingleCellExperiment('
+                'assays = list(logcounts = logcounts_mat))')
+
+            # colnames and group column (factor + droplevels in R).
+            r.assign("cell_names", StrVector(cell_names))
+            r("colnames(sce) <- cell_names")
+            r.assign("group_vals", StrVector(batch))
+            r.assign("group_key", batch_key)
+            r('SummarizedExperiment::colData(sce)[, group_key] <- base::factor(group_vals)')
+            r('SummarizedExperiment::colData(sce) <- '
+            'S4Vectors::DataFrame(SummarizedExperiment::colData(sce))')
+            r('SummarizedExperiment::colData(sce)[, group_key] <- '
+            'base::droplevels(SummarizedExperiment::colData(sce)[, group_key])')
+
+            # reducedDim if embedding exists.
+            if X_embed is not None:
+                r.assign("embed_mat", np.asarray(X_embed, dtype=float))
+                r.assign("dim_name", dim_red_name)
+                r('SingleCellExperiment::reducedDim(sce, dim_name) <- embed_mat')
+
+            # 4.Map parameters to R (note None→NA/NULL where required).
+            r.assign("k", int(k))
+            r.assign("dim_red", dim_red_name)
+            r.assign("n_dim", int(n_dim))
+            r.assign("cell_min", int(cell_min))
+            r.assign("smooth", bool(smooth))
+            r.assign("unbalanced", bool(unbalanced))
+            r.assign("res_name", ro.NULL if res_name is None else str(res_name))
+            r.assign("k_min", NA_Real if k_min is None else float(k_min))          # None → NA
+            r.assign("batch_min", ro.NULL if batch_min is None else float(batch_min))  # None → NULL
+            r('bp <- BiocParallel::SerialParam()')
+
+            # 5.Call CellMixS::cms (kNN/AD test/smoothing are done in R).
+            r('sce <- CellMixS::cms(sce, k = k, group = group_key, '
+            'dim_red = dim_red, n_dim = n_dim, cell_min = cell_min, '
+            'k_min = k_min, batch_min = batch_min, smooth = smooth, '
+            'unbalanced = unbalanced, res_name = res_name, BPPARAM = bp)')
+
+            # Fetch result column.
+            result_col = "cms" if res_name is None else f"cms.{res_name}"
+            r.assign("result_col", result_col)
+            cms_vals = np.array(
+                r('as.numeric(SummarizedExperiment::colData(sce)[, result_col])'),
+                dtype=float,
+            )
+
+        except Exception as e:
+            raise RuntimeError(
+                "Calling R CellMixS::cms failed. Ensure R and required R packages are installed."
+            ) from e
+
+    # Step 6: write back & return
+    if return_per_cell:
+        return cms_vals
+    return float(np.nanmean(cms_vals))
