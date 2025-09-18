@@ -1,11 +1,13 @@
 # fmt: off
 from .adgbd                   import adgbd
+from .adjusted_wallace_score  import adjusted_wallace_score
 from .agreement               import agreement
 from .alignment               import alignment
 from .ami                     import ami
 from .ari                     import ari
 from .bARI                    import bARI
 from .bAMI                    import bAMI
+from .bras                    import bras
 from .bv_measure              import bv_measure
 from .batch_probing_score     import batch_probing_score
 from .calinski_harabasz       import calinski_harabasz
