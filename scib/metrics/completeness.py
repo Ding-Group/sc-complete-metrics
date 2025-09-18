@@ -3,7 +3,7 @@ from sklearn.metrics import completeness_score
 from ..utils import check_adata, check_batch
 
 
-def completeness(adata, cluster_key, label_key):
+def completeness(adata, label_key, cluster_key):
     check_adata(adata)
     check_batch(cluster_key, adata.obs)
     check_batch(label_key, adata.obs)

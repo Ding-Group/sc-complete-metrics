@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 from scanpy.metrics._morans_i import _morans_i
-from scipy.spatial import distance_matrix
 
 from ..utils import check_adata, check_batch
 
@@ -14,7 +13,8 @@ def morans_i(
     adata_post,
     label_key,
     batch_key,
-    embed,
+    embed_pre,
+    embed_post,
     min_cells=500,
     moran_cutoff=0.2,
     max_genes=150,
@@ -74,7 +74,7 @@ def morans_i(
                 & (adata_pre.obs[batch_key] == gene_set[batch_key])
             ]
             # Use the PCA embedding from the unintegrated data
-            sc.pp.neighbors(adata_pre_sub, use_rep="X_pca")
+            sc.pp.neighbors(adata_pre_sub, use_rep=embed_pre)
             morans_i_pre = _morans_i(
                 adata_pre_sub.obsp["connectivities"],
                 vals=adata_pre_sub.obs[[score_name]].T,
@@ -85,7 +85,7 @@ def morans_i(
                 & (adata_post.obs[batch_key] == gene_set[batch_key])
             ]
             # Use adata_post.obsm[embed] for integrated data
-            sc.pp.neighbors(adata_post_sub, use_rep=embed)
+            sc.pp.neighbors(adata_post_sub, use_rep=embed_post)
             morans_i_post = _morans_i(
                 adata_post_sub.obsp["connectivities"],
                 vals=adata_post_sub.obs[[score_name]].T
@@ -100,7 +100,7 @@ def morans_i(
                 & (adata_pre.obs[batch_key] == gene_set[batch_key])
             ]
             # Use the PCA embedding from the unintegrated data
-            sc.pp.neighbors(adata_pre_sub, use_rep="X_pca")
+            sc.pp.neighbors(adata_pre_sub, use_rep=embed_pre)
             morans_i_pre = _morans_i(
                 adata_pre_sub.obsp["connectivities"],
                 vals=adata_pre_sub[:, genes].X.T
@@ -111,7 +111,7 @@ def morans_i(
                 & (adata_post.obs[batch_key] == gene_set[batch_key])
             ]
             # Use adata_post.obsm[embed] for integrated data
-            sc.pp.neighbors(adata_post_sub, use_rep=embed)
+            sc.pp.neighbors(adata_post_sub, use_rep=embed_post)
             morans_i_post = _morans_i(
                 adata_post_sub.obsp["connectivities"],
                 vals=adata_post_sub[:, genes].X.T

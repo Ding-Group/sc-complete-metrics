@@ -4,7 +4,7 @@ from sklearn.metrics.cluster import contingency_matrix
 from ..utils import check_adata, check_batch
 
 
-def purity_score(adata, cluster_key, label_key):
+def purity(adata, label_key, cluster_key):
     check_adata(adata)
     check_batch(cluster_key, adata.obs)
     check_batch(label_key, adata.obs)

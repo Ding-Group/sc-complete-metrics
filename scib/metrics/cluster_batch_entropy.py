@@ -1,20 +1,3 @@
-"""
-Cluster Batch Entropy (CBE)
-
-This metric quantifies how well batches are mixed within clusters. 
-It computes the weighted average of batch entropy across all clusters.
-
-Reference formula (from benchmark design):
-    CBE = 1 - (sum_k n_k * KL(P_k || P)) / (log(n_batch) * sum_k n_k)
-
-Where:
-- n_k: number of cells in cluster k
-- P_k: batch distribution within cluster k
-- P: overall batch distribution
-
-Status: Implemented
-"""
-
 import numpy as np
 from scipy.special import rel_entr
 

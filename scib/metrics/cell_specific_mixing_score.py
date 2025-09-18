@@ -2,6 +2,7 @@ from ..utils import check_adata
 import numpy as np
 import scanpy as sc
 import scipy.sparse as sp
+import anndata2ri
 
 
 def cell_specific_mixing_score(
@@ -110,7 +111,7 @@ def cell_specific_mixing_score(
             "rpy2 is required but not available. Install with `pip install rpy2`."
         ) from e
 
-    numpy_converter = default_converter + numpy2ri.converter
+    numpy_converter = default_converter + numpy2ri.converter + anndata2ri.converter
     with conversion.localconverter(numpy_converter):
         # Step 3–5: build SCE in R → map params → call CellMixS::cms
         try:
