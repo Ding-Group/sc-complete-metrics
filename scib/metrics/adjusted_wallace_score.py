@@ -1,27 +1,30 @@
 import numpy as np
 
-def adjusted_wallace_score(y1, y2, direction="1->2"):
-    # transit to numpy
-    y1 = np.asarray(y1).astype(str)
-    y2 = np.asarray(y2).astype(str)
-    if y1.shape[0] != y2.shape[0]:
-        raise ValueError("y1 and y2 must have the same length")
+def adjusted_wallace_score(adata, label_key, cluster_key, direction="1->2"):
+    """Adjusted Wallace Score
+    
+    :param adata: AnnData object.
+    :param label_key: Key in adata.obs containing cell type information.
+    :param cluster_key: Key in adata.obs containing cluster information.
+    """
 
-    _, y1c = np.unique(y1, return_inverse=True)
-    _, y2c = np.unique(y2, return_inverse=True)
+    labels_true = adata.obs[label_key].astype('category').cat.codes
+    labels_pred = adata.obs[cluster_key].astype('category').cat.codes
+
+    _, y1c = np.unique(labels_true, return_inverse=True)
+    _, y2c = np.unique(labels_pred, return_inverse=True)
 
     K1 = y1c.max() + 1
     K2 = y2c.max() + 1
     # contingency table
-    cont = np.zeros((K1, K2), dtype=np.int64)
+    cont = np.zeros((K1, K2))
     np.add.at(cont, (y1c, y2c), 1)
 
     n = int(cont.sum())
     if n < 2:
         return np.nan
 
-    def comb2(x): 
-        x = x.astype(np.int64)
+    def comb2(x):
         return x * (x - 1) // 2
 
     a  = comb2(cont).sum()
@@ -34,9 +37,8 @@ def adjusted_wallace_score(y1, y2, direction="1->2"):
     w1 = a / float(a + b) if (a + b) > 0 else np.nan  # 1->2
     w2 = a / float(a + c) if (a + c) > 0 else np.nan  # 2->1
 
-    
-    f1 = cont.sum(1).astype(np.int64) # size y1
-    f2 = cont.sum(0).astype(np.int64) # size y2
+    f1 = cont.sum(1) # size y1
+    f2 = cont.sum(0) # size y2
     D1 = (f1 * (f1 - 1)).sum() / (n * (n - 1))  # for y1
     D2 = (f2 * (f2 - 1)).sum() / (n * (n - 1))  # for y2
 
