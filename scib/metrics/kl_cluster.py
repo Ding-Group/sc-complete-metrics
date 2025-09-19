@@ -4,7 +4,7 @@ from sklearn.metrics import confusion_matrix
 
 
 def compute_cooccurrence_matrix(labels, batches):
-    mat = np.zeros((labels.max(), batches.max()), dtype=int)
+    mat = np.zeros((labels.max() + 1, batches.max() + 1), dtype=int)
     for k, b in zip(labels, batches):
         mat[k, b] += 1
     return mat
@@ -40,4 +40,6 @@ def kl_cluster(adata, batch_key, cluster_key, label_key):
     E = compute_cooccurrence_matrix(labels, batches)
 
     BER = np.sum(O * np.log((O + 1) / (E + 1)))
-    return BER
+
+    # Change to higher is better.
+    return -BER

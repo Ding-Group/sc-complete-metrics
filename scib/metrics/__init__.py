@@ -46,7 +46,7 @@ from .nmi_fixed import nmi_fixed
 from .over_correction import over_correction
 from .pcr import pcr_comparison
 from .pptpc import pptpc
-from .purity import purity_score
+from .purity import purity
 from .rbet import rbet
 from .sc_graph import scgraph
 from .scaled_variance import scaled_variance
@@ -117,7 +117,7 @@ __all__ = [
     "over_correction",
     "pcr_comparison",
     "pptpc",
-    "purity_score",
+    "purity",
     "rbet",
     "scgraph",
     "scaled_variance",
