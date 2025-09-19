@@ -37,6 +37,7 @@ from .isolated_labels import isolated_labels
 from .jaccard import jaccard_index
 from .kbet import kBET
 from .kl_divergence import kl_divergence
+from .knn_divergence import knn_divergence
 from .ldf_diff import ldf_diff
 from .lisi import clisi_graph, ilisi_graph
 from .matthews_corrcoef import matthews_corrcoef
@@ -168,6 +169,7 @@ def metrics(
     jaccard_=False,
     kBET_=False,
     kl_divergence_=False,
+    knn_divergence_=False,
     ldf_diff_=False,
     clisi_=False,
     ilisi_=False,
@@ -207,10 +209,6 @@ def metrics(
 
     # Run `sc.pp.neighbors` to get the kNN graph
     sc.pp.neighbors(adata_int, use_rep=embed)
-
-    # TODO: make the clustering based metrics independent of each other.
-    # Each should find the clustering with the highest metric value.
-    # clustering
 
     if nmi_:
         print("NMI...")
@@ -649,6 +647,12 @@ def metrics(
         )
     else:
         completeness_score = np.nan
+    
+    if knn_divergence_:
+        print("KNN divergence...")
+        knn_div_score = knn_divergence(adata_int, label_key, batch_key, embed)
+    else:
+        knn_div_score = np.nan
 
     if morans_i_:
         print("Moran's I...")
@@ -752,6 +756,7 @@ def metrics(
         "jaccard_index": jaccard_score,
         "kBET": kbet_score,
         "KL_divergence": kl_div_score,
+        "knn_divergence": knn_div_score,
         "ldf_diff": ldf_diff_score,
         "NMI_cluster/label": nmi_score,
         "matthews_corrcoef": mcc_score,

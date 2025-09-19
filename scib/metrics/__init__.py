@@ -16,7 +16,6 @@ from .cell_specific_mixing_score import cell_specific_mixing_score
 from .cluster_batch_entropy   import cluster_batch_entropy
 from .clustering_accuracy     import clustering_accuracy
 from .clustering              import cluster_optimal_resolution, get_resolutions, opt_louvain
-# from .coefficient_variation   import coefficient_of_variation
 from .compactness             import compactness
 from .completeness            import completeness
 from .crossbatch_knn          import crossbatch_knn
@@ -31,7 +30,7 @@ from .homogeneity             import homogeneity
 from .isolated_labels         import isolated_labels, isolated_labels_asw, isolated_labels_f1
 from .jaccard                 import jaccard_index
 from .kbet                    import kBET
-# from .knn_divergence          import knn_divergence
+from .knn_divergence          import knn_divergence
 from .kl_divergence           import kl_divergence
 from .ldf_diff                import ldf_diff
 from .lisi                    import clisi_graph, ilisi_graph, lisi_graph
