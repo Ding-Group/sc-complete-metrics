@@ -32,6 +32,7 @@ from .homogeneity import homogeneity
 from .isolated_labels import isolated_labels, isolated_labels_asw, isolated_labels_f1
 from .jaccard import jaccard_index
 from .kbet import kBET
+from .kl_cluster import kl_cluster
 from .kl_divergence import kl_divergence
 from .knn_divergence import knn_divergence
 from .ldf_diff import ldf_diff
@@ -97,6 +98,7 @@ __all__ = [
     "isolated_labels_f1",
     "jaccard_index",
     "kBET",
+    "kl_cluster",
     "kl_divergence",
     "knn_divergence",
     "ldf_diff",
