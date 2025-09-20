@@ -132,7 +132,8 @@ def metrics(
     adata_int,
     batch_key,
     label_key,
-    embed="X_pca",
+    embed,
+    embed_pre='X_pca',
     cluster_key="cluster",
     organism="human",
     verbose=False,
@@ -208,6 +209,7 @@ def metrics(
     check_batch(label_key, adata_int.obs)
 
     # Run `sc.pp.neighbors` to get the kNN graph
+    sc.pp.neighbors(adata, use_rep=embed_pre)
     sc.pp.neighbors(adata_int, use_rep=embed)
 
     if nmi_:

@@ -48,6 +48,7 @@ from .pcr import pcr_comparison
 from .pptpc import pptpc
 from .purity import purity
 from .rbet import rbet
+from .retained_knn import retained_knn
 from .sc_graph import scgraph
 from .scaled_variance import scaled_variance
 from .separation import separation
@@ -119,6 +120,7 @@ __all__ = [
     "pptpc",
     "purity",
     "rbet",
+    "retained_knn",
     "scgraph",
     "scaled_variance",
     "separation",

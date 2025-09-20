@@ -1,11 +1,11 @@
 import numpy as np
-import scanpy as sc
 from scipy.stats import entropy
+from sklearn.neighbors import NearestNeighbors
 
 from ..utils import check_adata, check_batch
 
 
-def shannon_entropy_nn(adata, batch_key, label_key, k=None, embed=None):
+def shannon_entropy_nn(adata, batch_key, label_key, embed, n_neighbors=50):
     """Shannon entropy
 
     Compute the batch and cell type Shannon entropy within each cell's
@@ -14,10 +14,8 @@ def shannon_entropy_nn(adata, batch_key, label_key, k=None, embed=None):
     :param adata: AnnData object
     :param batch_key: Key in adata.obs with batch labels
     :param label_key: Key in adata.obs with cell type labels
-    :param k: Number of nearest neighbors. If None, default to graph computed
-        in adata.obsp['distances'].
-    :param embed: Key in adata.obsm with integrated embedding, to be used if
-        k provided.
+    :param embed: Key in adata.obsm with integrated embedding,
+    :param n_neighbors: Number of nearest neighbors. Default: 50
     :return: Shannon entropy
     """
     # Basic checks
@@ -25,10 +23,9 @@ def shannon_entropy_nn(adata, batch_key, label_key, k=None, embed=None):
     check_batch(batch_key, adata.obs)
     check_batch(label_key, adata.obs)
 
-    graph_key = 'distances'
-    if k is not None:
-        sc.pp.neighbors(adata, n_neighbors=k, use_rep=embed, key_added='shannon_distances')
-        graph_key = 'shannon_distances'
+    nn = NearestNeighbors(n_neighbors=n_neighbors + 1).fit(adata.obsm[embed])
+    _, indices = nn.kneighbors(adata.obsm[embed])
+    indices = indices[:, 1:]
 
     batches = adata.obs[batch_key].astype("category").cat.codes
     labels = adata.obs[label_key].astype("category").cat.codes
@@ -36,14 +33,10 @@ def shannon_entropy_nn(adata, batch_key, label_key, k=None, embed=None):
 
     batch_entropy = []
     celltype_entropy = []
-    knn_graph = adata.obsp[graph_key]
 
-    for i in range(knn_graph.shape[0]):
-        row = knn_graph.getrow(i)
-        indices = row.indices
-        indices = np.where(indices >= 1)[0]  # TODO: This line might be wrong
-        selected_batches = batches[indices]
-        selected_labels = labels[indices]
+    for ind in indices:
+        selected_batches = batches[ind]
+        selected_labels = labels[ind]
 
         batch_entropy.append(entropy_(selected_batches, n_batches))
         celltype_entropy.append(entropy_(selected_labels, n_labels))

@@ -1,8 +1,8 @@
-import scanpy as sc
 import numpy as np
+from sklearn.neighbors import NearestNeighbors
 
 
-def adgbd(adata, batch_key, n_neighbors=None, embed=None):
+def adgbd(adata, batch_key, embed, n_neighbors=50):
     """Average deviation from global batch distribution
 
     :param adata: AnnData object.
@@ -12,30 +12,14 @@ def adgbd(adata, batch_key, n_neighbors=None, embed=None):
     :param embed: Key in adata.obsm to use for nearest neighbors when n_neighbors
         is provided.
     """
-    # Add graph for pptpc
-    if n_neighbors is not None:
-        if f'neighbors_{n_neighbors}' not in adata.uns.keys():
-            sc.pp.neighbors(
-                adata, use_rep=embed, n_neighbors=n_neighbors, key_added=f"neighbors_{n_neighbors}"
-            )
-        graph_key = f"neighbors_{n_neighbors}_distances"
-    else:
-        n_neighbors = adata.uns["neighbors"]["params"]["n_neighbors"]
-        graph_key = "distances"
+    nn = NearestNeighbors(n_neighbors=n_neighbors + 1).fit(adata.obsm[embed])
+    _, indices = nn.kneighbors(adata.obsm[embed])
+    indices = indices[:, 1:]
 
-    knn_graph = adata.obsp[graph_key]
-    # Cell counts in order to adjust threshold if fewer than n_neighbors
-    # cells in the data
     batch_counts = adata.obs[batch_key].value_counts(normalize=True)
-    neighbors = [
-        knn_graph.indices[knn_graph.indptr[i] : knn_graph.indptr[i + 1]]
-        for i in range(knn_graph.shape[0])
-    ]
 
     scores = []
-    for i, indices in enumerate(neighbors):
-        indices = indices[1:]  # exclude self
-
+    for i, indices in enumerate(indices):
         batch = adata.obs[batch_key].iloc[i]
 
         score = 1 - np.abs(
