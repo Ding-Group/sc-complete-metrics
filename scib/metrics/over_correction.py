@@ -51,14 +51,14 @@ def _topk_from_csr(csr: sparse.csr_matrix, k: int) -> np.ndarray:
 def over_correction(
     adata,
     label_key,
-    k=None,
+    n_neighbors=None,
     embed=None
 ) -> float:
     """Over-correction
 
     :param adata: AnnData object
     :param label_key: Key in adata.obs with cell type labels
-    :param k: Number of nearest neighbors. If None, default to graph computed
+    :param n_neighbors: Number of nearest neighbors. If None, default to graph computed
         in adata.obsp['distances'].
     :param embed: Key in adata.obsm with integrated embedding, to be used if
         k provided.
@@ -69,14 +69,17 @@ def over_correction(
     labels = adata.obs[label_key].to_numpy()
 
     graph_key = 'distances'
-    if k is not None:
-        sc.pp.neighbors(adata, n_neighbors=k, use_rep=embed, key_added='oc')
-        graph_key = 'oc_distances'
+    if n_neighbors is not None:
+        if f'neighbors_{n_neighbors}' not in adata.uns.keys():
+            sc.pp.neighbors(
+                adata, use_rep=embed, n_neighbors=n_neighbors, key_added=f"neighbors_{n_neighbors}"
+            )
+        graph_key = f"neighbors_{n_neighbors}_distances"
     else:
-        k = adata.uns['neighbors']['params']['n_neighbors']
+        n_neighbors = adata.uns['neighbors']['params']['n_neighbors']
 
     D = adata.obsp[graph_key].tocsr()
-    ind = _topk_from_csr(D, k)
+    ind = _topk_from_csr(D, n_neighbors)
 
     # 4. Call core function
     return over_correction_from_graph(labels, ind)

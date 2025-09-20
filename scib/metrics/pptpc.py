@@ -21,10 +21,11 @@ def pptpc(adata, batch_key, label_key, embed=None, n_neighbors=100):
 
     # Add graph for pptpc
     if n_neighbors is not None:
-        sc.pp.neighbors(
-            adata, use_rep=embed, n_neighbors=n_neighbors, key_added="pptpc"
-        )
-        graph_key = "pptpc_distances"
+        if f'neighbors_{n_neighbors}' not in adata.uns.keys():
+            sc.pp.neighbors(
+                adata, use_rep=embed, n_neighbors=n_neighbors, key_added=f"neighbors_{n_neighbors}"
+            )
+        graph_key = f"neighbors_{n_neighbors}_distances"
     else:
         n_neighbors = adata.uns["neighbors"]['params']["n_neighbors"]
         graph_key = "distances"

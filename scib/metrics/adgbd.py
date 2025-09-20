@@ -14,10 +14,11 @@ def adgbd(adata, batch_key, n_neighbors=None, embed=None):
     """
     # Add graph for pptpc
     if n_neighbors is not None:
-        sc.pp.neighbors(
-            adata, use_rep=embed, n_neighbors=n_neighbors, key_added="adgbd"
-        )
-        graph_key = "adgbd_distances"
+        if f'neighbors_{n_neighbors}' not in adata.uns.keys():
+            sc.pp.neighbors(
+                adata, use_rep=embed, n_neighbors=n_neighbors, key_added=f"neighbors_{n_neighbors}"
+            )
+        graph_key = f"neighbors_{n_neighbors}_distances"
     else:
         n_neighbors = adata.uns["neighbors"]["params"]["n_neighbors"]
         graph_key = "distances"
