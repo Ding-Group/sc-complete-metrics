@@ -41,6 +41,7 @@ from .knn_divergence import knn_divergence
 from .ldf_diff import ldf_diff
 from .lisi import clisi_graph, ilisi_graph
 from .matthews_corrcoef import matthews_corrcoef
+from .mixing import mixing
 from .modularity import modularity
 from .morans_i import morans_i
 from .nmi import nmi
@@ -49,6 +50,7 @@ from .over_correction import over_correction
 from .pcr import pcr_comparison
 from .pptpc import pptpc
 from .purity import purity
+from .retained_knn import retained_knn
 from .sc_graph import scgraph
 from .scaled_variance import scaled_variance
 from .separation import separation
@@ -133,7 +135,7 @@ def metrics(
     batch_key,
     label_key,
     embed,
-    embed_pre='X_pca',
+    embed_pre="X_pca",
     cluster_key="cluster",
     organism="human",
     verbose=False,
@@ -175,6 +177,7 @@ def metrics(
     clisi_=False,
     ilisi_=False,
     matthews_corrcoef_=False,
+    mixing_=False,
     modularity_=False,
     morans_i_=False,
     nmi_=False,
@@ -183,6 +186,7 @@ def metrics(
     pcr_=False,
     pptpc_=False,
     purity_=False,
+    retained_knn_=False,
     scgraph_=False,
     scaled_variance_=False,
     separation_=False,
@@ -649,12 +653,18 @@ def metrics(
         )
     else:
         completeness_score = np.nan
-    
+
     if knn_divergence_:
         print("KNN divergence...")
         knn_div_score = knn_divergence(adata_int, label_key, batch_key, embed)
     else:
         knn_div_score = np.nan
+    
+    if mixing_:
+        print("Mixing score...")
+        mixing_score = mixing(adata, batch_key, embed)
+    else:
+        mixing_score = np.nan
 
     if morans_i_:
         print("Moran's I...")
@@ -679,7 +689,7 @@ def metrics(
         pptpc_score = pptpc(adata_int, batch_key, label_key, embed=embed)
     else:
         pptpc_score = np.nan
-    
+
     if purity_:
         print("Purity...")
         purity_score = cluster_optimal_resolution(
@@ -687,6 +697,12 @@ def metrics(
         )
     else:
         purity_score = np.nan
+
+    if retained_knn_:
+        print("Retained KNN...")
+        retained_knn_score = retained_knn(adata, adata_int, batch_key, embed)
+    else:
+        retained_knn_score = np.nan
 
     if scaled_variance_:
         print("Scaled variance...")
@@ -696,11 +712,15 @@ def metrics(
 
     if separation_:
         separation_score = cluster_optimal_resolution(
-            adata_int, label_key, cluster_key, metric=separation, kwargs={'embed': embed}
+            adata_int,
+            label_key,
+            cluster_key,
+            metric=separation,
+            kwargs={"embed": embed},
         )
     else:
         separation_score = np.nan
-    
+
     if v_measure_:
         print("V measure...")
         v_score = cluster_optimal_resolution(
@@ -708,14 +728,14 @@ def metrics(
         )
     else:
         v_score = np.nan
-    
+
     if variation_of_information_:
         print("Variation of information...")
         vi_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=variation_of_information
         )
     else:
-        vi_score = np.nan    
+        vi_score = np.nan
 
     results = {
         "abgbd": adgbd_score,
@@ -762,6 +782,7 @@ def metrics(
         "ldf_diff": ldf_diff_score,
         "NMI_cluster/label": nmi_score,
         "matthews_corrcoef": mcc_score,
+        "mixing": mixing_score,
         "modularity_score": modularity_score,
         "morans_I": moransi_score,
         "nmi_fixed": nmi_fixed_score,
@@ -769,6 +790,7 @@ def metrics(
         "pcr_batch": pcr_score,
         "pptpc": pptpc_score,
         "purity": purity_score,
+        "retained_knn": retained_knn_score,
         "scaled_variance": sv_score,
         "scGraph_avg": scgraph_avg,
         "scGraph_corr_pca": scgraph_corr_pca,
@@ -779,7 +801,7 @@ def metrics(
         "silhouette": asw_label,
         "trajectory": trajectory_score,
         "v_measure": v_score,
-        "variation_of_information": vi_score
+        "variation_of_information": vi_score,
     }
 
     return pd.DataFrame.from_dict(results, orient="index")

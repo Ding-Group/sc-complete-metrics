@@ -39,6 +39,7 @@ from .ldf_diff import ldf_diff
 from .lisi import clisi_graph, ilisi_graph, lisi_graph
 from .matthews_corrcoef import matthews_corrcoef
 from .metrics import metrics, metrics_all, metrics_fast, metrics_slim
+from .mixing import mixing
 from .modularity import modularity
 from .morans_i import morans_i
 from .nmi import nmi
@@ -111,6 +112,7 @@ __all__ = [
     "metrics_all",
     "metrics_fast",
     "metrics_slim",
+    "mixing",
     "modularity",
     "morans_i",
     "nmi",
