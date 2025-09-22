@@ -1,11 +1,14 @@
+import inspect
 import warnings
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import scanpy as sc
 import seaborn as sns
-import numpy as np
 from deprecated import deprecated
+from sklearn.cluster import dbscan as dbscan_
+from sklearn.cluster import k_means
 
 from .nmi import nmi
 
@@ -91,6 +94,11 @@ def cluster_optimal_resolution(
         if use_rep is not None and use_rep != knn_rep:
             print(f"Recompute neighbors on rep {use_rep} instead of {knn_rep}")
             sc.pp.neighbors(adata, use_rep=use_rep)
+
+        # Add use_rep to kwargs if use_rep part of cluster_function signature
+        sig = inspect.signature(cluster_function)
+        if "use_rep" in sig.parameters:
+            kwargs["use_rep"] = use_rep
 
         # call clustering function
         print(f"Cluster for {resolution_key} with {cluster_function.__name__}")
@@ -266,3 +274,31 @@ def opt_louvain(
         return res_max, score_max, score_all
     else:
         return res_max, score_max, score_all, clustering
+
+
+def kmeans(adata, resolution, key_added, use_rep, **kwargs):
+    """Wrapper around scikit-learn k_means
+
+    :param adata: AnnData object.
+    :param resolution: Number of clusters for KMeans.
+    :param key_added: Cluster key to add.
+    :param use_rep: Key in adata.obsm to use for clustering.
+    :param **kwargs: arguments to pass to Kmeans clustering.
+    """
+    X = adata.obsm[use_rep]
+    _, label, _ = k_means(X, n_clusters=resolution, **kwargs)
+    adata.obs[key_added] = label
+
+
+def dbscan(adata, resolution, key_added, use_rep, **kwargs):
+    """Wrapper around scikit-learn dbscan
+
+    :param adata: AnnData object.
+    :param resolution: eps parameter for dbscan
+    :param key_added: Cluster key to add.
+    :param use_rep: Key in adata.obsm to use for clustering.
+    :param **kwargs: arguments to pass to dbscan clustering.
+    """
+    X = adata.obsm[use_rep]
+    _, label = dbscan_(X, eps=resolution, **kwargs)
+    adata.obs[key_added] = label
