@@ -43,8 +43,7 @@ from .metrics import metrics, metrics_all, metrics_fast, metrics_slim
 from .mixing import mixing
 from .modularity import modularity
 from .morans_i import morans_i
-from .nmi import nmi
-from .nmi_fixed import nmi_fixed
+from .nmi import nmi, nmi_fixed
 from .over_correction import over_correction
 from .pcr import pcr_comparison
 from .pptpc import pptpc
