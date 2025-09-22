@@ -8,7 +8,7 @@ from .adjusted_wallace_score import adjusted_wallace_score
 from .agreement import agreement
 from .alignment import alignment
 from .ami import ami
-from .ari import ari
+from .ari import ari, ari_fixed
 from .bAMI import bAMI
 from .bARI import bARI
 from .batch_ari import batch_ari
@@ -145,6 +145,7 @@ def metrics(
     alignment_=False,
     adjusted_mutual_info_=False,
     ari_=False,
+    ari_fixed_=False,
     bAMI_=False,
     bARI_=False,
     batch_ari_=False,
@@ -488,8 +489,14 @@ def metrics(
     else:
         shannon_entropy_nn_score = np.nan
 
+    if ari_fixed_:
+        print("ARI fixed...")
+        ari_fixed_score = ari_fixed(adata, label_key, cluster_key, embed=embed)
+    else:
+        ari_fixed_score = np.nan
+
     if bARI_:
-        print("Balanced ARI")
+        print("Balanced ARI...")
         _, bARI_score = cluster_optimal_resolution(
             adata_int, label_key=label_key, cluster_key=cluster_key, metric=bARI
         )
@@ -497,7 +504,7 @@ def metrics(
         bARI_score = np.nan
 
     if bAMI_:
-        print("Balanced AMI")
+        print("Balanced AMI...")
         _, bAMI_score = cluster_optimal_resolution(
             adata_int, label_key=label_key, cluster_key=cluster_key, metric=bAMI
         )
@@ -505,7 +512,7 @@ def metrics(
         bAMI_score = np.nan
 
     if bv_measure_:
-        print("Balanced v-measure")
+        print("Balanced v-measure...")
         _, bv_measure_score = cluster_optimal_resolution(
             adata_int, label_key=label_key, cluster_key=cluster_key, metric=bv_measure
         )
@@ -751,6 +758,7 @@ def metrics(
         "agreement": agreement_score,
         "AMI": ami_score,
         "ARI_cluster/label": ari_score,
+        "ARI_fixed": ari_fixed_score,
         "ASW_batch": asw_batch,
         "balanced_AMI": bAMI_score,
         "balanced_V_measure": bv_measure_score,

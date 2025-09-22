@@ -4,7 +4,7 @@ from .adjusted_wallace_score import adjusted_wallace_score
 from .agreement import agreement
 from .alignment import alignment
 from .ami import ami
-from .ari import ari
+from .ari import ari, ari_fixed
 from .bAMI import bAMI
 from .bARI import bARI
 from .batch_ari import batch_ari
@@ -69,6 +69,7 @@ __all__ = [
     "alignment",
     "ami",
     "ari",
+    "ari_fixed",
     "bAMI",
     "bARI",
     "batch_ari",
