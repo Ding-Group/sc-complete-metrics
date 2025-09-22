@@ -28,6 +28,7 @@ from .crossbatch_knn import crossbatch_knn
 from .crossbatch_logistic import crossbatch_logistic
 from .crossfold_knn import crossfold_knn
 from .crossfold_logistic import crossfold_logistic
+from .davies_bouldin import davies_bouldin
 from .f1_score import f1_score_macro
 from .fowlkes_mallows import fowlkes_mallows
 from .graph_connectivity import graph_connectivity
@@ -163,6 +164,7 @@ def metrics(
     crossbatch_logistic_=False,
     crossfold_knn_=False,
     crossfold_logistic_=False,
+    davies_bouldin_=False,
     f1_score_macro_=False,
     fowlkes_mallows_=False,
     graph_conn_=False,
@@ -654,6 +656,12 @@ def metrics(
     else:
         completeness_score = np.nan
 
+    if davies_bouldin_:
+        print("Davies-Bouldin...")
+        davies_bouldin_score = davies_bouldin(adata, label_key, embed)
+    else:
+        davies_bouldin_score = np.nan
+
     if knn_divergence_:
         print("KNN divergence...")
         knn_div_score = knn_divergence(adata_int, label_key, batch_key, embed)
@@ -767,6 +775,7 @@ def metrics(
         "crossbatch_logistic": crossbatch_logistic_score,
         "crossfold_knn": crossfold_knn_score,
         "crossfold_logistic": crossfold_logistic_score,
+        "davies_bouldin": davies_bouldin_score,
         "f1_score": f1sm,
         "fowlkes_mallows": fm_score,
         "graph_connectivity": graph_conn_score,

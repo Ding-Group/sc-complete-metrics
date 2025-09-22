@@ -24,6 +24,7 @@ from .crossbatch_knn import crossbatch_knn
 from .crossbatch_logistic import crossbatch_logistic
 from .crossfold_knn import crossfold_knn
 from .crossfold_logistic import crossfold_logistic
+from .davies_bouldin import davies_bouldin
 from .f1_score import f1_score_macro
 from .fowlkes_mallows import fowlkes_mallows
 from .graph_connectivity import graph_connectivity
@@ -90,6 +91,7 @@ __all__ = [
     "crossbatch_logistic",
     "crossfold_knn",
     "crossfold_logistic",
+    "davies_bouldin",
     "f1_score_macro",
     "fowlkes_mallows",
     "graph_connectivity",
