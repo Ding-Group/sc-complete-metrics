@@ -532,6 +532,7 @@ def metrics(
             label_key=label_key,
             cluster_key=cluster_key,
             metric=calinski_harabasz,
+            metric_kwargs={'embed': embed}
         )
     else:
         ch_score = np.nan
@@ -565,6 +566,7 @@ def metrics(
             label_key=label_key,
             cluster_key=cluster_key,
             metric=compactness,
+            metric_kwargs={'embed': embed}
         )
     else:
         compactness_score = np.nan
@@ -620,7 +622,7 @@ def metrics(
 
     if adgbd_:
         print("Average deviation from global batch distribution...")
-        adgbd_score = adgbd(adata_int, batch_key)
+        adgbd_score = adgbd(adata_int, batch_key, embed=embed)
     else:
         adgbd_score = np.nan
 
@@ -694,7 +696,7 @@ def metrics(
 
     if over_correction_:
         print("Over correction...")
-        oc_score = over_correction(adata_int, label_key)
+        oc_score = over_correction(adata_int, label_key, embed=embed)
     else:
         oc_score = np.nan
 
@@ -730,7 +732,7 @@ def metrics(
             label_key,
             cluster_key,
             metric=separation,
-            kwargs={"embed": embed},
+            metric_kwargs={"embed": embed},
         )
     else:
         separation_score = np.nan
