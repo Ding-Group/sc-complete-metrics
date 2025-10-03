@@ -485,7 +485,7 @@ def metrics(
 
     if shannon_entropy_nn_:
         print("Shannon entropy nearest neighbor graph...")
-        shannon_entropy_nn_score = shannon_entropy_nn(adata_int, batch_key, label_key)
+        shannon_entropy_nn_score = shannon_entropy_nn(adata_int, batch_key, label_key, embed=embed)
     else:
         shannon_entropy_nn_score = np.nan
 

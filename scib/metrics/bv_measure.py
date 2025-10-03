@@ -20,10 +20,9 @@ def bv_measure(adata, label_key, cluster_key):
     The bARI score [0, 1] where 0 is no match between the pair of labels, and 1 a perfect match.
     """
 
-    from balanced_clustering import balanced_homogeneity_completeness_v_measure
+    from balanced_clustering import balanced_v_measure
 
     clusters = adata.obs[cluster_key].to_numpy()
     labels = adata.obs[label_key].to_numpy()
 
-    _, _, vm = balanced_homogeneity_completeness_v_measure(labels_true=labels, labels_pred=clusters)
-    return vm
+    return balanced_v_measure(labels_true=labels, labels_pred=clusters)
