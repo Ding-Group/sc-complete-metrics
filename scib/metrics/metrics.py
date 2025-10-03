@@ -215,8 +215,8 @@ def metrics(
     check_batch(label_key, adata_int.obs)
 
     # Run `sc.pp.neighbors` to get the kNN graph
-    sc.pp.neighbors(adata, use_rep=embed_pre)
-    sc.pp.neighbors(adata_int, use_rep=embed)
+    # sc.pp.neighbors(adata, use_rep=embed_pre)
+    # sc.pp.neighbors(adata_int, use_rep=embed)
 
     if nmi_:
         print("NMI...")
@@ -385,10 +385,11 @@ def metrics(
     if ldf_diff_:
         print("LDF difference score...")
         ldf_diff_score = ldf_diff(
-            adata,
+            adata_pre=adata,
+            adata_post=adata_int,
             batch_key=batch_key,
-            embed=embed,
-            verbose=verbose,
+            embed_pre=embed_pre,
+            embed_post=embed
         )
     else:
         ldf_diff_score = np.nan
@@ -396,10 +397,9 @@ def metrics(
     if cell_specific_mixing_score_:
         print("Cell-specific mixing score...")
         cell_specific_mixing_score_result = cell_specific_mixing_score(
-            adata,
+            adata_int,
             batch_key=batch_key,
-            embed=embed,
-            verbose=verbose,
+            embed=embed
         )
     else:
         cell_specific_mixing_score_result = np.nan
@@ -418,7 +418,7 @@ def metrics(
 
     if crossbatch_knn_:
         print("Cross-batch k-NN score...")
-        crossbatch_knn_score = crossbatch_knn(adata, batch_key, label_key, embed)
+        crossbatch_knn_score = crossbatch_knn(adata_int, batch_key, label_key, embed)
     else:
         crossbatch_knn_score = np.nan
 
@@ -491,7 +491,7 @@ def metrics(
 
     if ari_fixed_:
         print("ARI fixed...")
-        ari_fixed_score = ari_fixed(adata, label_key, cluster_key, embed=embed)
+        ari_fixed_score = ari_fixed(adata_int, label_key, cluster_key, embed=embed)
     else:
         ari_fixed_score = np.nan
 
@@ -664,7 +664,7 @@ def metrics(
 
     if davies_bouldin_:
         print("Davies-Bouldin...")
-        davies_bouldin_score = davies_bouldin(adata, label_key, embed)
+        davies_bouldin_score = davies_bouldin(adata_int, label_key, embed)
     else:
         davies_bouldin_score = np.nan
 
@@ -676,7 +676,7 @@ def metrics(
     
     if mixing_:
         print("Mixing score...")
-        mixing_score = mixing(adata, batch_key, embed)
+        mixing_score = mixing(adata_int, batch_key, embed)
     else:
         mixing_score = np.nan
 

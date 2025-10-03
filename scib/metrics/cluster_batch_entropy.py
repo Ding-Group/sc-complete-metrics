@@ -3,7 +3,7 @@ from scipy.special import rel_entr
 
 def cluster_batch_entropy(adata, label_key, cluster_key):
     """
-    Compute Cluster Batch Entropy (CBE) score.
+    Compute Cluster Batch Entropy (BCENTROPY) score.
 
     Parameters
     ----------

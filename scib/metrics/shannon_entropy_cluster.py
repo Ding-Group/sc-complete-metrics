@@ -32,7 +32,7 @@ def batch_shannon_entropy(
         sub = batches[clusters == c]
         _, counts = np.unique(sub, return_counts=True)
         freqs = counts / counts.sum()
-        h = entropy(freqs)
+        h = entropy(freqs, base=2)
         score += (n_c / N) * h
 
     if normalize and max_ent > 0:
@@ -49,7 +49,7 @@ def celltype_shannon_entropy(
     """
     Weighted average Shannon entropy of cell type labels within each cluster.
 
-    If normalize=True, returns a value in [0, 1] by dividing by log(#batches).
+    If normalize=True, returns a value in [0, 1] by dividing by log(#cell types).
     """
     check_adata(adata)
     check_batch(cluster_key, adata.obs)
@@ -67,7 +67,7 @@ def celltype_shannon_entropy(
         sub = labels[clusters == c]
         _, counts = np.unique(sub, return_counts=True)
         freqs = counts / counts.sum()
-        h = entropy(freqs, base=np.e)
+        h = entropy(freqs, base=2)
         score += (n_c / N) * h
 
     if normalize and max_ent > 0:
