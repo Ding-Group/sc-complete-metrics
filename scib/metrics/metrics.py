@@ -205,12 +205,12 @@ def metrics(
     traj_=False,
     vm_=False,
     vi_=False,
-    **kwargs,
+    metric_kwargs = dict(),
 ):
     """
     Run the metrics specified.
 
-    **kwargs are the keyword arguments for each specific metric.
+    metric_kwargs are the keyword arguments for each specific metric.
     """
     check_adata(adata)
     check_batch(batch_key, adata.obs)
@@ -242,7 +242,7 @@ def metrics(
             adata_int,
             label_key=label_key,
             embed=embed,
-            metric=kwargs.get("si_metric", "euclidean"),
+            metric=metric_kwargs.get("si_metric", "euclidean"),
         )
     else:
         asw_label = np.nan
@@ -254,7 +254,7 @@ def metrics(
             batch_key=batch_key,
             label_key=label_key,
             embed=embed,
-            metric=kwargs.get("si_metric", "euclidean"),
+            metric=metric_kwargs.get("si_metric", "euclidean"),
             return_all=False,
             verbose=False,
         )
@@ -302,7 +302,7 @@ def metrics(
             batch_key=batch_key,
             embed=embed,
             cluster=True,
-            iso_threshold=kwargs.get("n_isolated", None),
+            iso_threshold=metric_kwargs.get("n_isolated", None),
             verbose=False,
         )
     else:
@@ -316,7 +316,7 @@ def metrics(
             batch_key=batch_key,
             embed=embed,
             cluster=False,
-            iso_threshold=kwargs.get("n_isolated", None),
+            iso_threshold=metric_kwargs.get("n_isolated", None),
             verbose=False,
         )
     else:
@@ -344,7 +344,7 @@ def metrics(
             adata_int,
             batch_key=batch_key,
             label_key=label_key,
-            type_=kwargs.get("type_", "knn"),
+            type_=metric_kwargs.get("type_", "knn"),
             embed=embed,
             scaled=True,
             verbose=verbose,
@@ -358,10 +358,10 @@ def metrics(
             adata_int,
             batch_key=batch_key,
             label_key=label_key,
-            type_=kwargs.get("type_", "knn"),
-            subsample=kwargs.get("subsample", 0.5) * 100,
+            type_=metric_kwargs.get("type_", "knn"),
+            subsample=metric_kwargs.get("subsample", 0.5) * 100,
             scale=True,
-            n_cores=kwargs.get("n_cores", 1),
+            n_cores=metric_kwargs.get("n_cores", 1),
             verbose=verbose,
         )
     else:
@@ -372,10 +372,10 @@ def metrics(
         ilisi_score = ilisi_graph(
             adata_int,
             batch_key=batch_key,
-            type_=kwargs.get("type_", "knn"),
-            subsample=kwargs.get("subsample", 0.5) * 100,
+            type_=metric_kwargs.get("type_", "knn"),
+            subsample=metric_kwargs.get("subsample", 0.5) * 100,
             scale=True,
-            n_cores=kwargs.get("n_cores", 1),
+            n_cores=metric_kwargs.get("n_cores", 1),
             verbose=verbose,
         )
     else:
