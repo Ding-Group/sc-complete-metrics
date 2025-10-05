@@ -15,6 +15,7 @@ from .bv_measure import bv_measure
 from .calinski_harabasz import calinski_harabasz
 from .cell_cycle import cell_cycle
 from .cell_specific_mixing_score import cell_specific_mixing_score
+from .cilisi import cilisi
 from .cluster_batch_entropy import cluster_batch_entropy
 from .clustering import cluster_optimal_resolution, get_resolutions, opt_louvain
 from .clustering_accuracy import clustering_accuracy
@@ -55,7 +56,7 @@ from .scaled_variance import scaled_variance
 from .separation import separation
 from .shannon_entropy_cluster import batch_shannon_entropy, celltype_shannon_entropy
 from .shannon_entropy_nn import shannon_entropy_nn
-from .silhouette import silhouette, silhouette_batch
+from .silhouette import silhouette, silhouette_batch, silhouette_cluster
 from .trajectory import trajectory_conservation
 from .v_measure import v_measure
 from .variation_of_information import variation_of_information
@@ -80,6 +81,7 @@ __all__ = [
     "calinski_harabasz",
     "cell_cycle",
     "cell_specific_mixing_score",
+    "cilisi",
     "cluster_batch_entropy",
     "cluster_optimal_resolution",
     "get_resolutions",
@@ -133,6 +135,7 @@ __all__ = [
     "shannon_entropy_nn",
     "silhouette",
     "silhouette_batch",
+    "silhouette_cluster",
     "trajectory_conservation",
     "v_measure",
     "variation_of_information",

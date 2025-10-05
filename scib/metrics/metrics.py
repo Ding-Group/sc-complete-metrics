@@ -19,6 +19,7 @@ from .bv_measure import bv_measure
 from .calinski_harabasz import calinski_harabasz
 from .cell_cycle import cell_cycle
 from .cell_specific_mixing_score import cell_specific_mixing_score
+from .cilisi import cilisi
 from .cluster_batch_entropy import cluster_batch_entropy
 from .clustering import cluster_optimal_resolution
 from .clustering_accuracy import clustering_accuracy
@@ -56,7 +57,7 @@ from .scaled_variance import scaled_variance
 from .separation import separation
 from .shannon_entropy_cluster import batch_shannon_entropy, celltype_shannon_entropy
 from .shannon_entropy_nn import shannon_entropy_nn
-from .silhouette import silhouette, silhouette_batch
+from .silhouette import silhouette, silhouette_batch, silhouette_cluster
 from .trajectory import trajectory_conservation
 from .v_measure import v_measure
 from .variation_of_information import variation_of_information
@@ -70,8 +71,8 @@ def metrics_fast(adata, adata_int, batch_key, label_key, **kwargs):
         label_key,
         isolated_labels_asw_=True,
         silhouette_=True,
-        hvg_score_=True,
-        graph_conn_=True,
+        hvg_=True,
+        gc_=True,
         pcr_=True,
         **kwargs,
     )
@@ -85,14 +86,14 @@ def metrics_slim(adata, adata_int, batch_key, label_key, **kwargs):
         label_key,
         isolated_labels_asw_=True,
         silhouette_=True,
-        hvg_score_=True,
-        graph_conn_=True,
+        hvg_=True,
+        gc_=True,
         pcr_=True,
         isolated_labels_f1_=True,
-        trajectory_=True,
+        traj_=True,
         nmi_=True,
         ari_=True,
-        cell_cycle_=True,
+        ccc_=True,
         sc_graph_=True,
         **kwargs,
     )
@@ -106,25 +107,25 @@ def metrics_all(adata, adata_int, batch_key, label_key, **kwargs):
         label_key,
         isolated_labels_asw_=True,
         silhouette_=True,
-        hvg_score_=True,
-        graph_conn_=True,
+        hvg_=True,
+        gc_=True,
         pcr_=True,
         isolated_labels_f1_=True,
-        trajectory_=True,
+        traj_=True,
         nmi_=True,
         ari_=True,
-        cell_cycle_=True,
-        kBET_=True,
+        ccc_=True,
+        kbet_=True,
         ilisi_=True,
         clisi_=True,
         sc_graph_=True,
-        ldf_diff_=True,
-        cell_specific_mixing_score_=True,
-        crossbatch_knn_=True,
-        crossbatch_logistic_=True,
-        batch_ari_=True,
-        batch_purity_=True,
-        batch_shannon_entropy_=True,
+        ldfdiff_=True,
+        csmc_=True,
+        bknn_=True,
+        blogreg_=True,
+        batchari_=True,
+        bps_=True,
+        bcentropy_=True,
         **kwargs,
     )
 
@@ -140,65 +141,70 @@ def metrics(
     organism="human",
     verbose=False,
     adgbd_=False,
-    adjusted_wallace_score_=False,
-    agreement_=False,
-    alignment_=False,
-    adjusted_mutual_info_=False,
+    awc_=False,
+    agree_=False,
+    align_=False,
+    ami_=False,
     ari_=False,
-    ari_fixed_=False,
-    bAMI_=False,
-    bARI_=False,
-    batch_ari_=False,
-    batch_probing_score_=False,
-    batch_purity_=False,
+    arif_=False,
+    bami_=False,
+    bari_=False,
+    batchari_=False,
+    probe_=False,
+    bps_=False,
     bras_=False,
-    bv_measure_=False,
-    calinski_harabasz_=False,
-    cell_cycle_=False,
-    cell_specific_mixing_score_=False,
-    cluster_batch_entropy_=False,
-    clustering_accuracy_=False,
-    compactness_=False,
-    completeness_=False,
-    crossbatch_knn_=False,
-    crossbatch_logistic_=False,
-    crossfold_knn_=False,
-    crossfold_logistic_=False,
-    davies_bouldin_=False,
-    f1_score_macro_=False,
-    fowlkes_mallows_=False,
-    graph_conn_=False,
-    hvg_score_=False,
-    homogeneity_=False,
-    isolated_labels_=False,
-    jaccard_=False,
-    kBET_=False,
-    kl_divergence_=False,
-    knn_divergence_=False,
-    ldf_diff_=False,
+    bvm_=False,
+    ch_=False,
+    ccc_=False,
+    csmc_=False,
+    cbe_=False,
+    cilisi_=False,
+    clustacc_=False,
+    compact_=False,
+    comp_=False,
+    bknn_=False,
+    blogreg_=False,
+    fknn_=False,
+    flogreg_=False,
+    dbi_=False,
+    f1_=False,
+    fmi_=False,
+    gc_=False,
+    hvg_=False,
+    homo_=False,
+    isof1_=False,
+    isoasw_=False,
+    jacc_=False,
+    kbet_=False,
+    kldiv_=False,
+    knndiv_=False,
+    ldfdiff_=False,
     clisi_=False,
     ilisi_=False,
-    matthews_corrcoef_=False,
-    mixing_=False,
+    mcc_=False,
+    mix_=False,
     modularity_=False,
-    morans_i_=False,
+    morani_=False,
     nmi_=False,
-    nmi_fixed_=False,
-    over_correction_=False,
+    nmif_=False,
+    ocs_=False,
     pcr_=False,
     pptpc_=False,
     purity_=False,
-    retained_knn_=False,
+    rknn_=False,
     scgraph_=False,
-    scaled_variance_=False,
+    sv_=False,
     separation_=False,
-    batch_shannon_entropy_=False,
-    celltype_shannon_entropy_=False,
-    shannon_entropy_nn_=False,
-    silhouette_=False,
-    trajectory_=False,
-    v_measure_=False,
-    variation_of_information_=False,
+    bcentropy_=False,
+    ccentropy_=False,
+    bnentropy_=False,
+    cnentropy_=False,
+    casw_=False,
+    basw_=False,
+    clustasw_=False,
+    traj_=False,
+    vm_=False,
+    vi_=False,
     **kwargs,
 ):
     """
@@ -213,10 +219,6 @@ def metrics(
     check_adata(adata_int)
     check_batch(batch_key, adata_int.obs)
     check_batch(label_key, adata_int.obs)
-
-    # Run `sc.pp.neighbors` to get the kNN graph
-    # sc.pp.neighbors(adata, use_rep=embed_pre)
-    # sc.pp.neighbors(adata_int, use_rep=embed)
 
     if nmi_:
         print("NMI...")
@@ -234,14 +236,19 @@ def metrics(
     else:
         ari_score = np.nan
 
-    if silhouette_:
-        print("Silhouette score...")
+    if casw_:
+        print("Cell type silhouette score...")
         asw_label = silhouette(
             adata_int,
             label_key=label_key,
             embed=embed,
             metric=kwargs.get("si_metric", "euclidean"),
         )
+    else:
+        asw_label = np.nan
+
+    if basw_:
+        print("Batch silhouette score...")
         asw_batch = silhouette_batch(
             adata_int,
             batch_key=batch_key,
@@ -252,8 +259,19 @@ def metrics(
             verbose=False,
         )
     else:
-        asw_label = np.nan
         asw_batch = np.nan
+
+    if clustasw_:
+        print("Cluster ASW score...")
+        silhouette_cluster_score = cluster_optimal_resolution(
+            adata_int,
+            label_key,
+            cluster_key,
+            metric=silhouette_cluster,
+            metric_kwargs={"embed": embed},
+        )
+    else:
+        silhouette_cluster_score = np.nan
 
     if pcr_:
         print("PC regression...")
@@ -263,7 +281,7 @@ def metrics(
     else:
         pcr_score = np.nan
 
-    if cell_cycle_:
+    if ccc_:
         print("cell cycle effect...")
         cc_score = cell_cycle(
             adata,
@@ -276,7 +294,7 @@ def metrics(
     else:
         cc_score = np.nan
 
-    if isolated_labels_:
+    if isof1_:
         print("Isolated labels F1...")
         il_score_f1 = isolated_labels(
             adata_int,
@@ -290,25 +308,21 @@ def metrics(
     else:
         il_score_f1 = np.nan
 
-    if isolated_labels_:
+    if isoasw_:
         print("Isolated labels ASW...")
-        il_score_asw = (
-            isolated_labels(
-                adata_int,
-                label_key=label_key,
-                batch_key=batch_key,
-                embed=embed,
-                cluster=False,
-                iso_threshold=kwargs.get("n_isolated", None),
-                verbose=False,
-            )
-            if silhouette_
-            else np.nan
+        il_score_asw = isolated_labels(
+            adata_int,
+            label_key=label_key,
+            batch_key=batch_key,
+            embed=embed,
+            cluster=False,
+            iso_threshold=kwargs.get("n_isolated", None),
+            verbose=False,
         )
     else:
         il_score_asw = np.nan
 
-    if graph_conn_:
+    if gc_:
         print("Graph connectivity...")
         graph_conn_score = graph_connectivity(adata_int, label_key=label_key)
     else:
@@ -324,7 +338,7 @@ def metrics(
             np.nan
         )
 
-    if kBET_:
+    if kbet_:
         print("kBET...")
         kbet_score = kBET(
             adata_int,
@@ -340,7 +354,7 @@ def metrics(
 
     if clisi_:
         print("cLISI score...")
-        clisi = clisi_graph(
+        clisi_score = clisi_graph(
             adata_int,
             batch_key=batch_key,
             label_key=label_key,
@@ -351,11 +365,11 @@ def metrics(
             verbose=verbose,
         )
     else:
-        clisi = np.nan
+        clisi_score = np.nan
 
     if ilisi_:
         print("iLISI score...")
-        ilisi = ilisi_graph(
+        ilisi_score = ilisi_graph(
             adata_int,
             batch_key=batch_key,
             type_=kwargs.get("type_", "knn"),
@@ -365,14 +379,20 @@ def metrics(
             verbose=verbose,
         )
     else:
-        ilisi = np.nan
+        ilisi_score = np.nan
 
-    if hvg_score_:
+    if cilisi_:
+        print("CiLISI score...")
+        cilisi_score = cilisi(adata_int, batch_key, label_key, embed)
+    else:
+        cilisi_score = np.nan
+
+    if hvg_:
         hvg_score = hvg_overlap(adata, adata_int, batch_key)
     else:
         hvg_score = np.nan
 
-    if trajectory_:
+    if traj_:
         print("Trajectory conservation score...")
         trajectory_score = trajectory_conservation(
             adata,
@@ -382,47 +402,45 @@ def metrics(
     else:
         trajectory_score = np.nan
 
-    if ldf_diff_:
+    if ldfdiff_:
         print("LDF difference score...")
         ldf_diff_score = ldf_diff(
             adata_pre=adata,
             adata_post=adata_int,
             batch_key=batch_key,
             embed_pre=embed_pre,
-            embed_post=embed
+            embed_post=embed,
         )
     else:
         ldf_diff_score = np.nan
 
-    if cell_specific_mixing_score_:
+    if csmc_:
         print("Cell-specific mixing score...")
         cell_specific_mixing_score_result = cell_specific_mixing_score(
-            adata_int,
-            batch_key=batch_key,
-            embed=embed
+            adata_int, batch_key=batch_key, embed=embed
         )
     else:
         cell_specific_mixing_score_result = np.nan
 
-    if alignment_:
+    if align_:
         print("Alignment score…")
         alignment_score = alignment(adata_int, batch_key, embed)
     else:
         alignment_score = np.nan
 
-    if agreement_:
+    if agree_:
         print("Agreement score...")
         agreement_score = agreement(adata, adata_int, batch_key, label_key, embed)
     else:
         agreement_score = np.nan
 
-    if crossbatch_knn_:
+    if bknn_:
         print("Cross-batch k-NN score...")
         crossbatch_knn_score = crossbatch_knn(adata_int, batch_key, label_key, embed)
     else:
         crossbatch_knn_score = np.nan
 
-    if crossbatch_logistic_:
+    if blogreg_:
         print("Cross-batch logistic regression...")
         crossbatch_logistic_score = crossbatch_logistic(
             adata_int,
@@ -433,19 +451,19 @@ def metrics(
     else:
         crossbatch_logistic_score = np.nan
 
-    if crossfold_knn_:
+    if fknn_:
         print("Cross-fold k-NN score...")
         crossfold_knn_score = crossfold_knn(adata_int, label_key, embed)
     else:
         crossfold_knn_score = np.nan
 
-    if crossfold_logistic_:
+    if flogreg_:
         print("Cross-fold logistic regression...")
         crossfold_logistic_score = crossfold_logistic(adata_int, label_key, embed)
     else:
         crossfold_logistic_score = np.nan
 
-    if batch_ari_:
+    if batchari_:
         print("Batch ARI...")
         batch_ari_score = cluster_optimal_resolution(
             adata_int, label_key=batch_key, cluster_key=cluster_key, metric=batch_ari
@@ -453,7 +471,7 @@ def metrics(
     else:
         batch_ari_score = np.nan
 
-    if batch_purity_:
+    if bps_:
         print("Batch purity score...")
         batch_purity = cluster_optimal_resolution(
             adata_int,
@@ -464,7 +482,7 @@ def metrics(
     else:
         batch_purity = np.nan
 
-    if batch_shannon_entropy_:
+    if bcentropy_:
         print("Batch Shannon entropy...")
         batch_shannon_entropy_score = cluster_optimal_resolution(
             adata_int,
@@ -475,7 +493,7 @@ def metrics(
     else:
         batch_shannon_entropy_score = np.nan
 
-    if celltype_shannon_entropy_:
+    if ccentropy_:
         print("Cell type Shannon entropy...")
         celltype_shannon_entropy_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=celltype_shannon_entropy
@@ -483,19 +501,31 @@ def metrics(
     else:
         celltype_shannon_entropy_score = np.nan
 
-    if shannon_entropy_nn_:
+    if bnentropy_ and cnentropy_:
         print("Shannon entropy nearest neighbor graph...")
-        shannon_entropy_nn_score = shannon_entropy_nn(adata_int, batch_key, label_key, embed=embed)
+        batch_shannon_entropy_nn_score, cell_shannon_entropy_nn_score = (
+            shannon_entropy_nn(adata_int, batch_key, label_key, embed=embed)
+        )
+    elif bnentropy_:
+        print("Shannon entropy nearest neighbor graph...")
+        batch_shannon_entropy_nn_score, _ = shannon_entropy_nn(
+            adata_int, batch_key, label_key, embed=embed
+        )
+    elif cnentropy_:
+        print("Shannon entropy nearest neighbor graph...")
+        _, cell_shannon_entropy_nn_score = shannon_entropy_nn(
+            adata_int, batch_key, label_key, embed=embed
+        )
     else:
-        shannon_entropy_nn_score = np.nan
+        batch_shannon_entropy_nn_score = cell_shannon_entropy_nn_score = np.nan
 
-    if ari_fixed_:
+    if arif_:
         print("ARI fixed...")
-        ari_fixed_score = ari_fixed(adata_int, label_key, cluster_key, embed=embed)
+        arif_score = ari_fixed(adata_int, label_key, cluster_key, embed=embed)
     else:
-        ari_fixed_score = np.nan
+        arif_score = np.nan
 
-    if bARI_:
+    if bari_:
         print("Balanced ARI...")
         _, bARI_score = cluster_optimal_resolution(
             adata_int, label_key=label_key, cluster_key=cluster_key, metric=bARI
@@ -503,15 +533,15 @@ def metrics(
     else:
         bARI_score = np.nan
 
-    if bAMI_:
+    if bami_:
         print("Balanced AMI...")
-        _, bAMI_score = cluster_optimal_resolution(
+        _, bami_score = cluster_optimal_resolution(
             adata_int, label_key=label_key, cluster_key=cluster_key, metric=bAMI
         )
     else:
-        bAMI_score = np.nan
+        bami_score = np.nan
 
-    if bv_measure_:
+    if bvm_:
         print("Balanced v-measure...")
         _, bv_measure_score = cluster_optimal_resolution(
             adata_int, label_key=label_key, cluster_key=cluster_key, metric=bv_measure
@@ -519,25 +549,25 @@ def metrics(
     else:
         bv_measure_score = np.nan
 
-    if batch_probing_score_:
+    if probe_:
         print("Batch probing score...")
         bps_rf, bps_lr = batch_probing_score(adata_int, batch_key, embed)
     else:
         bps_rf = bps_lr = np.nan
 
-    if calinski_harabasz_:
+    if ch_:
         print("Calinkski Harabasz score")
         ch_score = cluster_optimal_resolution(
             adata_int,
             label_key=label_key,
             cluster_key=cluster_key,
             metric=calinski_harabasz,
-            metric_kwargs={'embed': embed}
+            metric_kwargs={"embed": embed},
         )
     else:
         ch_score = np.nan
 
-    if clustering_accuracy_:
+    if clustacc_:
         print("Clustering accuracy...")
         clustacc_score = cluster_optimal_resolution(
             adata_int,
@@ -548,7 +578,7 @@ def metrics(
     else:
         clustacc_score = np.nan
 
-    if f1_score_macro_:
+    if f1_:
         print("F1 score...")
         f1sm = cluster_optimal_resolution(
             adata_int,
@@ -559,25 +589,25 @@ def metrics(
     else:
         f1sm = np.nan
 
-    if compactness_:
+    if compact_:
         print("Compactness...")
         compactness_score = cluster_optimal_resolution(
             adata_int,
             label_key=label_key,
             cluster_key=cluster_key,
             metric=compactness,
-            metric_kwargs={'embed': embed}
+            metric_kwargs={"embed": embed},
         )
     else:
         compactness_score = np.nan
 
-    if kl_divergence_:
+    if kldiv_:
         print("KL divergence...")
         kl_div_score = kl_divergence(adata_int, batch_key, embed)
     else:
         kl_div_score = np.nan
 
-    if homogeneity_:
+    if homo_:
         print("Homogeneity...")
         homogeneity_score = cluster_optimal_resolution(
             adata_int,
@@ -588,7 +618,7 @@ def metrics(
     else:
         homogeneity_score = np.nan
 
-    if fowlkes_mallows_:
+    if fmi_:
         print("Fowlkes Mallows...")
         fm_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=fowlkes_mallows
@@ -596,7 +626,7 @@ def metrics(
     else:
         fm_score = np.nan
 
-    if jaccard_:
+    if jacc_:
         print("Jaccard index...")
         jaccard_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=jaccard_index
@@ -604,7 +634,7 @@ def metrics(
     else:
         jaccard_score = np.nan
 
-    if matthews_corrcoef_:
+    if mcc_:
         print("Matthews correlation coefficient")
         mcc_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=matthews_corrcoef
@@ -626,7 +656,7 @@ def metrics(
     else:
         adgbd_score = np.nan
 
-    if adjusted_wallace_score_:
+    if awc_:
         print("Adjusted Wallace score...")
         aw_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=adjusted_wallace_score
@@ -634,7 +664,7 @@ def metrics(
     else:
         aw_score = np.nan
 
-    if adjusted_mutual_info_:
+    if ami_:
         print("Adjusted mutual information")
         ami_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=ami
@@ -648,7 +678,7 @@ def metrics(
     else:
         bras_score = np.nan
 
-    if cluster_batch_entropy_:
+    if cbe_:
         print("Cluster batch entropy...")
         cluster_batch_entropy_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=cluster_batch_entropy
@@ -656,7 +686,7 @@ def metrics(
     else:
         cluster_batch_entropy_score = np.nan
 
-    if completeness_:
+    if comp_:
         print("Completeness...")
         completeness_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=completeness
@@ -664,37 +694,37 @@ def metrics(
     else:
         completeness_score = np.nan
 
-    if davies_bouldin_:
+    if dbi_:
         print("Davies-Bouldin...")
         davies_bouldin_score = davies_bouldin(adata_int, label_key, embed)
     else:
         davies_bouldin_score = np.nan
 
-    if knn_divergence_:
+    if knndiv_:
         print("KNN divergence...")
         knn_div_score = knn_divergence(adata_int, label_key, batch_key, embed)
     else:
         knn_div_score = np.nan
-    
-    if mixing_:
+
+    if mix_:
         print("Mixing score...")
         mixing_score = mixing(adata_int, batch_key, embed)
     else:
         mixing_score = np.nan
 
-    if morans_i_:
+    if morani_:
         print("Moran's I...")
         moransi_score = morans_i(adata, adata_int, label_key, batch_key, "X_pca", embed)
     else:
         moransi_score = np.nan
 
-    if nmi_fixed_:
+    if nmif_:
         print("NMI fixed...")
         nmi_fixed_score = nmi_fixed(adata_int, label_key, cluster_key)
     else:
         nmi_fixed_score = np.nan
 
-    if over_correction_:
+    if ocs_:
         print("Over correction...")
         oc_score = over_correction(adata_int, label_key, embed=embed)
     else:
@@ -714,13 +744,13 @@ def metrics(
     else:
         purity_score = np.nan
 
-    if retained_knn_:
+    if rknn_:
         print("Retained KNN...")
         retained_knn_score = retained_knn(adata, adata_int, batch_key, embed)
     else:
         retained_knn_score = np.nan
 
-    if scaled_variance_:
+    if sv_:
         print("Scaled variance...")
         sv_score = scaled_variance(adata_int, batch_key, embed)
     else:
@@ -737,7 +767,7 @@ def metrics(
     else:
         separation_score = np.nan
 
-    if v_measure_:
+    if vm_:
         print("V measure...")
         v_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=v_measure
@@ -745,7 +775,7 @@ def metrics(
     else:
         v_score = np.nan
 
-    if variation_of_information_:
+    if vi_:
         print("Variation of information...")
         vi_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=variation_of_information
@@ -754,72 +784,74 @@ def metrics(
         vi_score = np.nan
 
     results = {
-        "abgbd": adgbd_score,
-        "adjusted_wallace_score": aw_score,
-        "alignment": alignment_score,
-        "agreement": agreement_score,
+        "ADGBD": adgbd_score,
+        "AWC": aw_score,
+        "ALIGN": alignment_score,
+        "AGREE": agreement_score,
         "AMI": ami_score,
-        "ARI_cluster/label": ari_score,
-        "ARI_fixed": ari_fixed_score,
-        "ASW_batch": asw_batch,
-        "balanced_AMI": bAMI_score,
-        "balanced_V_measure": bv_measure_score,
-        "balanced_ARI": bARI_score,
-        "batch_robing_score_RF": bps_rf,
-        "batch_probing_score_LR": bps_lr,
-        "batch_ari": batch_ari_score,
-        "batch_purity_score": batch_purity,
-        "batch_shannon_entropy": batch_shannon_entropy_score,
+        "ARI": ari_score,
+        "ARIF": arif_score,
+        "BASW": asw_batch,
+        "BAMI": bami_score,
+        "BVM": bv_measure_score,
+        "BARI": bARI_score,
+        "PROBE": (bps_rf, bps_lr),
+        "BATCHARI": batch_ari_score,
+        "BPS": batch_purity,
+        "BCENTROPY": batch_shannon_entropy_score,
         "BRAS": bras_score,
-        "calinski_harabasz": ch_score,
-        "cell_cycle_conservation": cc_score,
-        "cell_specific_mixing_score": cell_specific_mixing_score_result,
-        "cell_type_shannon_entropy": celltype_shannon_entropy_score,
-        "cLISI": clisi,
-        "clustering_accuracy": clustacc_score,
-        "cluster_batch_entropy": cluster_batch_entropy_score,
-        "compactness": compactness_score,
-        "completeness": completeness_score,
-        "crossbatch_knn": crossbatch_knn_score,
-        "crossbatch_logistic": crossbatch_logistic_score,
-        "crossfold_knn": crossfold_knn_score,
-        "crossfold_logistic": crossfold_logistic_score,
-        "davies_bouldin": davies_bouldin_score,
-        "f1_score": f1sm,
-        "fowlkes_mallows": fm_score,
-        "graph_connectivity": graph_conn_score,
-        "homogeneity": homogeneity_score,
-        "hvg_overlap": hvg_score,
-        "iLISI": ilisi,
-        "isolated_label_F1": il_score_f1,
-        "isolated_label_silhouette": il_score_asw,
-        "jaccard_index": jaccard_score,
-        "kBET": kbet_score,
-        "KL_divergence": kl_div_score,
-        "knn_divergence": knn_div_score,
-        "ldf_diff": ldf_diff_score,
-        "NMI_cluster/label": nmi_score,
-        "matthews_corrcoef": mcc_score,
-        "mixing": mixing_score,
-        "modularity_score": modularity_score,
-        "morans_I": moransi_score,
-        "nmi_fixed": nmi_fixed_score,
-        "over_correction": oc_score,
-        "pcr_batch": pcr_score,
-        "pptpc": pptpc_score,
-        "purity": purity_score,
-        "retained_knn": retained_knn_score,
-        "scaled_variance": sv_score,
-        "scGraph_avg": scgraph_avg,
-        "scGraph_corr_pca": scgraph_corr_pca,
-        "scGraph_corr_weighted": scgraph_corr_weighted,
-        "scGraph_rank_pca": scgraph_rank_pca,
-        "separation": separation_score,
-        "shannon_entropy_nn": shannon_entropy_nn_score,
-        "silhouette": asw_label,
-        "trajectory": trajectory_score,
-        "v_measure": v_score,
-        "variation_of_information": vi_score,
+        "CH": ch_score,
+        "CCC": cc_score,
+        "CSMC": cell_specific_mixing_score_result,
+        "CCENTROPY": celltype_shannon_entropy_score,
+        "CLISI": clisi_score,
+        "CILISI": cilisi_score,
+        "CLUSTASW": silhouette_cluster_score,
+        "CLUSTACC": clustacc_score,
+        "CBE": cluster_batch_entropy_score,
+        "COMPACT": compactness_score,
+        "COMPLETE": completeness_score,
+        "BKNN": crossbatch_knn_score,
+        "BLOGREG": crossbatch_logistic_score,
+        "FKNN": crossfold_knn_score,
+        "FLOGREG": crossfold_logistic_score,
+        "DBI": davies_bouldin_score,
+        "F1": f1sm,
+        "FMI": fm_score,
+        "GC": graph_conn_score,
+        "HOMO": homogeneity_score,
+        "HVG": hvg_score,
+        "ILISI": ilisi_score,
+        "ISOF1": il_score_f1,
+        "ISOASW": il_score_asw,
+        "JACC": jaccard_score,
+        "KBET": kbet_score,
+        "KLDIV": kl_div_score,
+        "KNNDIV": knn_div_score,
+        "LDFDIFF": ldf_diff_score,
+        "NMI": nmi_score,
+        "MCC": mcc_score,
+        "MIX": mixing_score,
+        "MODULARITY": modularity_score,
+        "MORANI": moransi_score,
+        "NMIF": nmi_fixed_score,
+        "OCS": oc_score,
+        "PCR": pcr_score,
+        "PPTPC": pptpc_score,
+        "PURITY": purity_score,
+        "RKNN": retained_knn_score,
+        "SV": sv_score,
+        "SCGRAPH": scgraph_avg,
+        "SEPARATION": separation_score,
+        "BNENTROPY": batch_shannon_entropy_nn_score,
+        "CNENTROPY": cell_shannon_entropy_nn_score,
+        "CASW": asw_label,
+        "TRAJ": trajectory_score,
+        "VM": v_score,
+        "VI": vi_score,
+        # "scGraph_corr_pca": scgraph_corr_pca,
+        # "scGraph_corr_weighted": scgraph_corr_weighted,
+        # "scGraph_rank_pca": scgraph_rank_pca,
     }
 
     return pd.DataFrame.from_dict(results, orient="index")

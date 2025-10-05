@@ -166,3 +166,18 @@ def silhouette_batch(
         return asw, sil_means, sil_df
 
     return asw
+
+
+def silhouette_cluster(
+    adata,
+    label_key, # Unused
+    cluster_key,
+    embed,
+    metric="euclidean",
+    scale=True,
+):
+    if embed not in adata.obsm.keys():
+        print(adata.obsm.keys())
+        raise KeyError(f"{embed} not in obsm")
+
+    return silhouette_score(adata.obsm[embed], adata.obs[cluster_key], metric=metric)
