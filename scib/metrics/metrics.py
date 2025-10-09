@@ -263,7 +263,7 @@ def metrics(
 
     if clustasw_:
         print("Cluster ASW score...")
-        silhouette_cluster_score = cluster_optimal_resolution(
+        _, silhouette_cluster_score = cluster_optimal_resolution(
             adata_int,
             label_key,
             cluster_key,
@@ -465,7 +465,7 @@ def metrics(
 
     if batchari_:
         print("Batch ARI...")
-        batch_ari_score = cluster_optimal_resolution(
+        _, batch_ari_score = cluster_optimal_resolution(
             adata_int, label_key=batch_key, cluster_key=cluster_key, metric=batch_ari
         )
     else:
@@ -473,7 +473,7 @@ def metrics(
 
     if bps_:
         print("Batch purity score...")
-        batch_purity = cluster_optimal_resolution(
+        _, batch_purity = cluster_optimal_resolution(
             adata_int,
             label_key=batch_key,
             cluster_key=cluster_key,
@@ -484,7 +484,7 @@ def metrics(
 
     if bcentropy_:
         print("Batch Shannon entropy...")
-        batch_shannon_entropy_score = cluster_optimal_resolution(
+        _, batch_shannon_entropy_score = cluster_optimal_resolution(
             adata_int,
             label_key=batch_key,
             cluster_key=cluster_key,
@@ -495,7 +495,7 @@ def metrics(
 
     if ccentropy_:
         print("Cell type Shannon entropy...")
-        celltype_shannon_entropy_score = cluster_optimal_resolution(
+        _, celltype_shannon_entropy_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=celltype_shannon_entropy
         )
     else:
@@ -557,7 +557,7 @@ def metrics(
 
     if ch_:
         print("Calinkski Harabasz score")
-        ch_score = cluster_optimal_resolution(
+        _, ch_score = cluster_optimal_resolution(
             adata_int,
             label_key=label_key,
             cluster_key=cluster_key,
@@ -569,7 +569,7 @@ def metrics(
 
     if clustacc_:
         print("Clustering accuracy...")
-        clustacc_score = cluster_optimal_resolution(
+        _, clustacc_score = cluster_optimal_resolution(
             adata_int,
             label_key=label_key,
             cluster_key=cluster_key,
@@ -580,7 +580,7 @@ def metrics(
 
     if f1_:
         print("F1 score...")
-        f1sm = cluster_optimal_resolution(
+        _, f1sm = cluster_optimal_resolution(
             adata_int,
             label_key=label_key,
             cluster_key=cluster_key,
@@ -591,7 +591,7 @@ def metrics(
 
     if compact_:
         print("Compactness...")
-        compactness_score = cluster_optimal_resolution(
+        _, compactness_score = cluster_optimal_resolution(
             adata_int,
             label_key=label_key,
             cluster_key=cluster_key,
@@ -609,7 +609,7 @@ def metrics(
 
     if homo_:
         print("Homogeneity...")
-        homogeneity_score = cluster_optimal_resolution(
+        _, homogeneity_score = cluster_optimal_resolution(
             adata_int,
             label_key,
             cluster_key,
@@ -620,7 +620,7 @@ def metrics(
 
     if fmi_:
         print("Fowlkes Mallows...")
-        fm_score = cluster_optimal_resolution(
+        _, fm_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=fowlkes_mallows
         )
     else:
@@ -628,7 +628,7 @@ def metrics(
 
     if jacc_:
         print("Jaccard index...")
-        jaccard_score = cluster_optimal_resolution(
+        _, jaccard_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=jaccard_index
         )
     else:
@@ -636,7 +636,7 @@ def metrics(
 
     if mcc_:
         print("Matthews correlation coefficient")
-        mcc_score = cluster_optimal_resolution(
+        _, mcc_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=matthews_corrcoef
         )
     else:
@@ -644,7 +644,7 @@ def metrics(
 
     if modularity_:
         print("Modularity...")
-        modularity_score = cluster_optimal_resolution(
+        _, modularity_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=modularity
         )
     else:
@@ -658,7 +658,7 @@ def metrics(
 
     if awc_:
         print("Adjusted Wallace score...")
-        aw_score = cluster_optimal_resolution(
+        _, aw_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=adjusted_wallace_score
         )
     else:
@@ -666,7 +666,7 @@ def metrics(
 
     if ami_:
         print("Adjusted mutual information")
-        ami_score = cluster_optimal_resolution(
+        _, ami_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=ami
         )
     else:
@@ -680,7 +680,7 @@ def metrics(
 
     if cbe_:
         print("Cluster batch entropy...")
-        cluster_batch_entropy_score = cluster_optimal_resolution(
+        _, cluster_batch_entropy_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=cluster_batch_entropy
         )
     else:
@@ -688,7 +688,7 @@ def metrics(
 
     if comp_:
         print("Completeness...")
-        completeness_score = cluster_optimal_resolution(
+        _, completeness_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=completeness
         )
     else:
@@ -738,7 +738,7 @@ def metrics(
 
     if purity_:
         print("Purity...")
-        purity_score = cluster_optimal_resolution(
+        _, purity_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=purity
         )
     else:
@@ -757,7 +757,7 @@ def metrics(
         sv_score = np.nan
 
     if separation_:
-        separation_score = cluster_optimal_resolution(
+        _, separation_score = cluster_optimal_resolution(
             adata_int,
             label_key,
             cluster_key,
@@ -769,7 +769,7 @@ def metrics(
 
     if vm_:
         print("V measure...")
-        v_score = cluster_optimal_resolution(
+        _, v_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=v_measure
         )
     else:
@@ -777,7 +777,7 @@ def metrics(
 
     if vi_:
         print("Variation of information...")
-        vi_score = cluster_optimal_resolution(
+        _, vi_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=variation_of_information
         )
     else:
@@ -795,7 +795,7 @@ def metrics(
         "BAMI": bami_score,
         "BVM": bv_measure_score,
         "BARI": bARI_score,
-        "PROBE": (bps_rf, bps_lr),
+        "PROBE": (bps_rf + bps_lr) / 2,
         "BATCHARI": batch_ari_score,
         "BPS": batch_purity,
         "BCENTROPY": batch_shannon_entropy_score,
