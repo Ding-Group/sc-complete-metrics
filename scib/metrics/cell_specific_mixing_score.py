@@ -9,9 +9,8 @@ def cell_specific_mixing_score(
     adata,
     batch_key,
     embed,
-    k=20,
+    k=70,
     n_dim=None,
-    dim_red_name="PCA",
     k_min=None,          # maps to R NA
     batch_min=None,      # maps to R NULL
     cell_min=10,
@@ -41,13 +40,11 @@ def cell_specific_mixing_score(
     batch_key : str
         Column in ``adata.obs`` with batch/group labels.
     k : int
-        Number of nearest neighbors (required).
+        Number of nearest neighbors.
     embed : str, optional
         Key in ``adata.obsm`` for the embedding to use (default ``"X_pca"``).
     n_dim : int, optional
         Number of embedding dimensions to use (default all).
-    dim_red_name : str, optional
-        Name for ``reducedDim`` in the SCE (default ``"PCA"``).
     k_min : int or None, optional
         Minimum neighbors for density-adaptive neighborhood. ``None`` → R ``NA``.
     batch_min : int or None, optional
@@ -86,26 +83,15 @@ def cell_specific_mixing_score(
 
     if n_dim is None:
         n_dim = adata.obsm[embed].shape[1]
-
-    # Normalize embedding: dense float (cells × dims), first n_dim columns.
-    X_embed = None
-    if embed in adata.obsm:
-        X_embed = np.asarray(adata.obsm[embed], dtype=float)
-        if X_embed.shape[1] < n_dim:
-            n_dim = X_embed.shape[1]
-        X_embed = X_embed[:, :n_dim]
-
-    # Batch labels and cell names (R will factor + droplevels).
-    batch = adata.obs[batch_key].astype("category").astype(str).to_numpy()
-    cell_names = adata.obs_names.to_list()
+    elif n_dim > adata.obsm[embed].shape[1]:
+        raise ValueError("n_dim is greater than embedding dim")
 
     # Step 2: rpy2 bridge
     try:
         import rpy2.robjects as ro
         from rpy2.robjects.packages import importr
-        from rpy2.robjects import numpy2ri, StrVector, NA_Real
+        from rpy2.robjects import numpy2ri, NA_Real
         from rpy2.robjects import conversion, default_converter
-        from rpy2.robjects import numpy2ri
     except Exception as e:
         raise RuntimeError(
             "rpy2 is required but not available. Install with `pip install rpy2`."
@@ -121,46 +107,10 @@ def cell_specific_mixing_score(
             importr("CellMixS")
             r = ro.r
 
-            # 3.Build SCE (minimal when embedding is provided).
-            n_cells = adata.n_obs
-            r.assign("n_cells", int(n_cells))
-
-            if X_embed is not None:
-                r('sce <- SingleCellExperiment::SingleCellExperiment('
-                'assays = list(logcounts = matrix(0, nrow=1, ncol=n_cells)))')
-            else:
-                if not r_run_pca_when_embed_missing:
-                    raise RuntimeError(
-                        "Missing embedding with r_run_pca_when_embed_missing=False."
-                    )
-                X_expr = adata.X
-                if sp.issparse(X_expr):
-                    X_expr = X_expr.toarray()
-                X_expr = np.asarray(X_expr, dtype=float).T  # genes × cells
-                r.assign("logcounts_mat", X_expr)
-                r('sce <- SingleCellExperiment::SingleCellExperiment('
-                'assays = list(logcounts = logcounts_mat))')
-
-            # colnames and group column (factor + droplevels in R).
-            r.assign("cell_names", StrVector(cell_names))
-            r("colnames(sce) <- cell_names")
-            r.assign("group_vals", StrVector(batch))
-            r.assign("group_key", batch_key)
-            r('SummarizedExperiment::colData(sce)[, group_key] <- base::factor(group_vals)')
-            r('SummarizedExperiment::colData(sce) <- '
-            'S4Vectors::DataFrame(SummarizedExperiment::colData(sce))')
-            r('SummarizedExperiment::colData(sce)[, group_key] <- '
-            'base::droplevels(SummarizedExperiment::colData(sce)[, group_key])')
-
-            # reducedDim if embedding exists.
-            if X_embed is not None:
-                r.assign("embed_mat", np.asarray(X_embed, dtype=float))
-                r.assign("dim_name", dim_red_name)
-                r('SingleCellExperiment::reducedDim(sce, dim_name) <- embed_mat')
-
             # 4.Map parameters to R (note None→NA/NULL where required).
             r.assign("k", int(k))
-            r.assign("dim_red", dim_red_name)
+            r.assign("dim_red", embed)
+            r.assign('group_key', batch_key)
             r.assign("n_dim", int(n_dim))
             r.assign("cell_min", int(cell_min))
             r.assign("smooth", bool(smooth))
@@ -169,6 +119,9 @@ def cell_specific_mixing_score(
             r.assign("k_min", NA_Real if k_min is None else float(k_min))          # None → NA
             r.assign("batch_min", ro.NULL if batch_min is None else float(batch_min))  # None → NULL
             r('bp <- BiocParallel::SerialParam()')
+
+            del adata.uns
+            r.assign("sce", adata)
 
             # 5.Call CellMixS::cms (kNN/AD test/smoothing are done in R).
             r('sce <- CellMixS::cms(sce, k = k, group = group_key, '
