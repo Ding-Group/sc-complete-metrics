@@ -9,7 +9,7 @@ def cilisi(
     adata,
     batch_key,
     label_key,
-    embed,
+    embed=None,
     k0=90,
     subsample=None,
     scale=True,

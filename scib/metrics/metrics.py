@@ -38,6 +38,7 @@ from .homogeneity import homogeneity
 from .isolated_labels import isolated_labels
 from .jaccard import jaccard_index
 from .kbet import kBET
+from .kl_cluster import kl_cluster
 from .kl_divergence import kl_divergence
 from .knn_divergence import knn_divergence
 from .ldf_diff import ldf_diff
@@ -176,6 +177,7 @@ def metrics(
     isoasw_=False,
     jacc_=False,
     kbet_=False,
+    klc_=False,
     kldiv_=False,
     knndiv_=False,
     ldfdiff_=False,
@@ -511,11 +513,13 @@ def metrics(
         batch_shannon_entropy_nn_score, _ = shannon_entropy_nn(
             adata_int, batch_key, label_key, embed=embed
         )
+        cell_shannon_entropy_nn_score = np.nan
     elif cnentropy_:
         print("Shannon entropy nearest neighbor graph...")
         _, cell_shannon_entropy_nn_score = shannon_entropy_nn(
             adata_int, batch_key, label_key, embed=embed
         )
+        batch_shannon_entropy_nn_score = np.nan
     else:
         batch_shannon_entropy_nn_score = cell_shannon_entropy_nn_score = np.nan
 
@@ -699,6 +703,10 @@ def metrics(
         davies_bouldin_score = davies_bouldin(adata_int, label_key, embed)
     else:
         davies_bouldin_score = np.nan
+
+    # if klc_:
+    #     print("KL Cluster...")
+    #     klc_score = kl_cluster(adata_int, batch_key, cluster_key)
 
     if knndiv_:
         print("KNN divergence...")
