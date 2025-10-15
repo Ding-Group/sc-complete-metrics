@@ -24,7 +24,7 @@ def batch_shannon_entropy(
     batches = adata.obs[batch_key].astype("category").cat.codes
     clusters = adata.obs[cluster_key].astype("category").cat.codes
 
-    max_ent = np.log(len(np.unique(batches))) if normalize and len(batches) > 1 else 1.0
+    max_ent = np.log2(len(np.unique(batches))) if normalize and len(batches) > 1 else 1.0
 
     score = 0.0
     for c in np.unique(clusters):
@@ -59,7 +59,7 @@ def celltype_shannon_entropy(
     labels = adata.obs[label_key].astype("category").cat.codes
     clusters = adata.obs[cluster_key].astype("category").cat.codes
 
-    max_ent = np.log(len(np.unique(labels))) if normalize and len(labels) > 1 else 1.0
+    max_ent = np.log2(len(np.unique(labels))) if normalize and len(labels) > 1 else 1.0
 
     score = 0.0
     for c in np.unique(clusters):
