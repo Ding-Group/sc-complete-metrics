@@ -1,6 +1,6 @@
 from sklearn.metrics import calinski_harabasz_score
 from ..utils import check_adata, check_batch
-
+import numpy as np
 
 def calinski_harabasz(adata, label_key, cluster_key, embed):
     """
@@ -19,5 +19,8 @@ def calinski_harabasz(adata, label_key, cluster_key, embed):
 
     X = adata.obsm[embed]
     labels = adata.obs[cluster_key].to_numpy()
+
+    if adata.obs[cluster_key].nunique() == 1:
+        return np.nan
 
     return calinski_harabasz_score(X, labels)

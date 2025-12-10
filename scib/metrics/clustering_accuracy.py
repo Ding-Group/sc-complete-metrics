@@ -30,16 +30,10 @@ def clustering_accuracy(adata, label_key, cluster_key):
     check_batch(cluster_key, adata.obs)
     check_batch(label_key, adata.obs)
 
-    # Convert true labels to integer codes
-    true_series = adata.obs[label_key]
-    if not pd.api.types.is_categorical_dtype(true_series):
-        true_series = true_series.astype("category")
+    true_series = adata.obs[label_key].astype('category')
     labels_true = true_series.cat.codes.to_numpy()
 
-    # Convert predicted clusters to integer codes
-    pred_series = adata.obs[cluster_key]
-    if not pd.api.types.is_categorical_dtype(pred_series):
-        pred_series = pred_series.astype("category")
+    pred_series = adata.obs[cluster_key].astype('category')
     labels_pred = pred_series.cat.codes.to_numpy()
 
     # Build contingency matrix between predicted and true labels

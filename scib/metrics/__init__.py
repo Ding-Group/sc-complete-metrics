@@ -45,9 +45,11 @@ from .mixing import mixing
 from .modularity import modularity
 from .morans_i import morans_i
 from .nmi import nmi, nmi_fixed
+from .nnmap import nnmap
 from .over_correction import over_correction
 from .pcr import pcr_comparison
 from .pptpc import pptpc
+from .pstdb import pstdb
 from .purity import purity
 from .rbet import rbet
 from .retained_knn import retained_knn
@@ -121,9 +123,11 @@ __all__ = [
     "morans_i",
     "nmi",
     "nmi_fixed",
+    "nnmap",
     "over_correction",
     "pcr_comparison",
     "pptpc",
+    "pstdb",
     "purity",
     "rbet",
     "retained_knn",

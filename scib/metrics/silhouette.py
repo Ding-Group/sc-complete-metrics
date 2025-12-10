@@ -180,4 +180,8 @@ def silhouette_cluster(
         print(adata.obsm.keys())
         raise KeyError(f"{embed} not in obsm")
 
+    if adata.obs[cluster_key].nunique() == 1:
+        # Only one cluster
+        return 0
+
     return silhouette_score(adata.obsm[embed], adata.obs[cluster_key], metric=metric)

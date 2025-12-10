@@ -43,6 +43,10 @@ def knn_divergence(adata, label_key, batch_key, embed, min_cells=30):
                         0,
                     )
                 )
+                if np.isnan(div_pq[-1]):
+                    print(div_pq)
+                    print(div_ent_code[idx1_mutual, :])
+                    print(div_ent_code[idx2_mutual, :])
                 div_qp.append(
                     max(
                         estimate(
@@ -53,6 +57,10 @@ def knn_divergence(adata, label_key, batch_key, embed, min_cells=30):
                         0,
                     )
                 )
+                if np.isnan(div_qp[-1]):
+                    print("div_qp")
+                    print(div_ent_code[idx2_mutual, :])
+                    print(div_ent_code[idx1_mutual, :])
 
     div_score = (sum(div_pq) / len(div_pq) + sum(div_qp) / len(div_qp)) / 2
     return div_score

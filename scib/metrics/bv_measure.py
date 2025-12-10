@@ -1,6 +1,6 @@
 # Source: https://github.com/theislab/atlas-feature-selection-benchmark/blob/main/bin/metric-bARI.py
 from ..utils import check_adata, check_batch
-
+import numpy as np
 
 def bv_measure(adata, label_key, cluster_key):
     """
@@ -24,5 +24,8 @@ def bv_measure(adata, label_key, cluster_key):
 
     clusters = adata.obs[cluster_key].to_numpy()
     labels = adata.obs[label_key].to_numpy()
+
+    if len(np.unique(clusters)) == 1:
+        return np.nan
 
     return balanced_v_measure(labels_true=labels, labels_pred=clusters)

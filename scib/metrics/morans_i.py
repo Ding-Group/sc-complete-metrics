@@ -151,12 +151,14 @@ def sub_variable_genes(adata, label_key, batch_key, min_cells, moran_cutoff):
             (adata.obs[label_key] == label).values
             & (adata.obs[batch_key] == batch).values
         ].copy()
+
         # Remove lowly expr genes before Moran's I computation as they will be less likely relevant
         # As this is done per small cell group within sample+cell type and HVGs there is not many genes (200-500)
         # so all can be used for Moran's I computation
         sc.pp.filter_genes(adata_sub, min_cells=adata_sub.shape[0] * 0.1)
         # Compute embedding of group
-        sc.pp.pca(adata_sub, n_comps=15)
+        print(adata_sub.n_obs, adata_sub.n_vars)
+        sc.pp.pca(adata_sub, mask_var=None, n_comps=15)
         sc.pp.neighbors(adata_sub, n_pcs=15)
         # Compute I
         morans_i = _morans_i(adata_sub.obsp["connectivities"], vals=adata_sub.X.T)

@@ -12,7 +12,7 @@ def ldf_diff(
     return_per_cell = False
 ):
     if n_dim is None:
-        n_dim = adata_post.obsm[embed_post].shape[1]
+        n_dim = min(adata_post.obsm[embed_post].shape[1], adata_pre.obsm[embed_pre].shape[1])
 
     if (
         n_dim > adata_post.obsm[embed_post].shape[1]
@@ -32,6 +32,8 @@ def ldf_diff(
     batch = adata_post.obs[batch_key].astype("category").astype(str).to_numpy()
     cell_names = adata_post.obs_names.to_list()
 
+    k = min(k, adata_post.obs[batch_key].value_counts().min() - 1)
+
     try:
         import rpy2.robjects as ro
         from rpy2.robjects.packages import importr
@@ -46,68 +48,63 @@ def ldf_diff(
     numpy_converter = default_converter + numpy2ri.converter
 
     with conversion.localconverter(numpy_converter):
-        try:
-            importr("SingleCellExperiment")
-            importr("SummarizedExperiment")
-            importr("CellMixS")
-            r = ro.r
+        importr("SingleCellExperiment")
+        importr("SummarizedExperiment")
+        importr("CellMixS")
+        r = ro.r
 
-            # 3.Build SCE (minimal when embedding is provided).
-            n_cells = adata_post.n_obs
-            r.assign("n_cells", int(n_cells))
+        # 3.Build SCE (minimal when embedding is provided).
+        n_cells = adata_post.n_obs
+        r.assign("n_cells", int(n_cells))
 
-            r(
-                "sce <- SingleCellExperiment::SingleCellExperiment("
-                "assays = list(logcounts = matrix(0, nrow=1, ncol=n_cells)))"
-            )
+        r(
+            "sce <- SingleCellExperiment::SingleCellExperiment("
+            "assays = list(logcounts = matrix(0, nrow=1, ncol=n_cells)))"
+        )
 
-            # colnames and group column (factor + droplevels in R).
-            r.assign("cell_names", StrVector(cell_names))
-            r("colnames(sce) <- cell_names")
-            r.assign("group_vals", StrVector(batch))
-            r.assign("group_key", batch_key)
-            r(
-                "SummarizedExperiment::colData(sce)[, group_key] <- base::factor(group_vals)"
-            )
-            r(
-                "SummarizedExperiment::colData(sce) <- "
-                "S4Vectors::DataFrame(SummarizedExperiment::colData(sce))"
-            )
-            r(
-                "SummarizedExperiment::colData(sce)[, group_key] <- "
-                "base::droplevels(SummarizedExperiment::colData(sce)[, group_key])"
-            )
+        # colnames and group column (factor + droplevels in R).
+        r.assign("cell_names", StrVector(cell_names))
+        r("colnames(sce) <- cell_names")
+        r.assign("group_vals", StrVector(batch))
+        r.assign("group_key", batch_key)
+        r(
+            "SummarizedExperiment::colData(sce)[, group_key] <- base::factor(group_vals)"
+        )
+        r(
+            "SummarizedExperiment::colData(sce) <- "
+            "S4Vectors::DataFrame(SummarizedExperiment::colData(sce))"
+        )
+        r(
+            "SummarizedExperiment::colData(sce)[, group_key] <- "
+            "base::droplevels(SummarizedExperiment::colData(sce)[, group_key])"
+        )
 
-            # reducedDim
-            r.assign("embed_mat", np.asarray(X_embed_pre, dtype=float))
-            r.assign("dim_name", "X_embed_pre")
-            r("SingleCellExperiment::reducedDim(sce, dim_name) <- embed_mat")
+        # reducedDim
+        r.assign("embed_mat", np.asarray(X_embed_pre, dtype=float))
+        r.assign("dim_name", "X_embed_pre")
+        r("SingleCellExperiment::reducedDim(sce, dim_name) <- embed_mat")
 
-            r.assign("embed_mat", np.asarray(X_embed_post, dtype=float))
-            r.assign("dim_name", "X_embed_post")
-            r("SingleCellExperiment::reducedDim(sce, dim_name) <- embed_mat")
+        r.assign("embed_mat", np.asarray(X_embed_post, dtype=float))
+        r.assign("dim_name", "X_embed_post")
+        r("SingleCellExperiment::reducedDim(sce, dim_name) <- embed_mat")
 
-            r.assign("k", int(k))
-            r.assign("n_dim", int(n_dim))
+        r.assign("k", int(k))
+        r.assign("n_dim", int(n_dim))
 
-            r("sce_pre_list <- list()")
-            r(f"""
+        r("sce_pre_list <- list()")
+        r(f"""
 for (s in unique(colData(sce)${batch_key})) {{
-    sce_pre_list[[s]] <- sce[, colData(sce)${batch_key} == s]
+sce_pre_list[[s]] <- sce[, colData(sce)${batch_key} == s]
 }}
-              """)
-            r(
-                f"sce_ldf <- ldfDiff(sce_pre_list, sce, k = {k}, group = '{batch_key}', dim_red = 'X_embed_pre', dim_combined = 'X_embed_post', n_dim = {n_dim})"
-            )
-            cms_vals = np.array(
-                r('as.numeric(SummarizedExperiment::colData(sce_ldf)[, "diff_ldf"])'),
-                dtype=float,
-            )
+            """)
+        r(
+            f"sce_ldf <- ldfDiff(sce_pre_list, sce, k = {k}, group = '{batch_key}', dim_red = 'X_embed_pre', dim_combined = 'X_embed_post', n_dim = {n_dim})"
+        )
+        cms_vals = np.array(
+            r('as.numeric(SummarizedExperiment::colData(sce_ldf)[, "diff_ldf"])'),
+            dtype=float,
+        )
 
-        except Exception as e:
-            raise RuntimeError(
-                "Calling R CellMixS::cms failed. Ensure R and required R packages are installed."
-            ) from e
 
     if return_per_cell:
         return cms_vals

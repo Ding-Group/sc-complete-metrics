@@ -12,5 +12,7 @@ def matthews_corrcoef(adata, label_key, cluster_key):
     check_batch(label_key, adata.obs)
 
     labels_true = adata.obs[label_key].to_numpy()
-    labels_pred = adata.obs[cluster_key].to_numpy()
+    mapping = adata.obs.groupby(cluster_key)[label_key].agg(lambda x: x.mode().iloc[0])
+    labels_pred = adata.obs[cluster_key].map(mapping)
+
     return float(_sklearn_mcc(labels_true, labels_pred))

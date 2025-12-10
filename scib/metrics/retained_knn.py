@@ -23,10 +23,15 @@ def retained_knn(
     for batch in batches:
         subset = adata_pre[adata_pre.obs[batch_key] == batch].copy()
         # Compute the nearest neighbors for the subset
-        sc.pp.highly_variable_genes(subset)
-        sc.tl.pca(subset, n_comps=30)
+        n_comps = min(30, subset.n_obs - 1)
 
-        nn = NearestNeighbors(n_neighbors=n_neighbors + 1).fit(subset.obsm["X_pca"])
+        if subset.n_obs <= n_neighbors:
+            sc.pp.highly_variable_genes(subset)
+            sc.tl.pca(subset, n_comps=n_comps)
+        # If not, then don't need to compute PCA, the nearest neighbors are just all the cells.
+        neighbors_to_use = min(subset.n_obs - 1, n_neighbors)
+
+        nn = NearestNeighbors(n_neighbors=neighbors_to_use + 1).fit(subset.obsm["X_pca"])
         _, indices = nn.kneighbors(subset.obsm["X_pca"])
         indices = indices[:, 1:]
 
@@ -43,6 +48,7 @@ def retained_knn(
 
     scores = []
     for i_pre, i_post in zip(neighbors_pre, neighbors_post):
+        i_post = i_post[:len(i_pre)] # In case i_pre comes from fewer neighbors
         scores.append(len(np.intersect1d(i_pre, i_post)) / n_neighbors)
 
     return np.mean(scores)

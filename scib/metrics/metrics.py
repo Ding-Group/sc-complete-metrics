@@ -1,3 +1,4 @@
+import anndata as ad
 import numpy as np
 import pandas as pd
 import scanpy as sc
@@ -48,9 +49,11 @@ from .mixing import mixing
 from .modularity import modularity
 from .morans_i import morans_i
 from .nmi import nmi, nmi_fixed
+from .nnmap import nnmap
 from .over_correction import over_correction
 from .pcr import pcr_comparison
 from .pptpc import pptpc
+from .pstdb import pstdb
 from .purity import purity
 from .retained_knn import retained_knn
 from .sc_graph import scgraph
@@ -141,6 +144,8 @@ def metrics(
     cluster_key="cluster",
     organism="human",
     verbose=False,
+    knn_only=False,  # No embed available, only KNN graph
+    all_cluster_=False,
     adgbd_=False,
     awc_=False,
     agree_=False,
@@ -189,9 +194,11 @@ def metrics(
     morani_=False,
     nmi_=False,
     nmif_=False,
+    nnmap_=False,
     ocs_=False,
     pcr_=False,
     pptpc_=False,
+    pstdb_=False,
     purity_=False,
     rknn_=False,
     scgraph_=False,
@@ -207,7 +214,7 @@ def metrics(
     traj_=False,
     vm_=False,
     vi_=False,
-    metric_kwargs = dict(),
+    metric_kwargs=dict(),
 ):
     """
     Run the metrics specified.
@@ -222,7 +229,23 @@ def metrics(
     check_batch(batch_key, adata_int.obs)
     check_batch(label_key, adata_int.obs)
 
-    if nmi_:
+    if np.any(adata.obs_names != adata_int.obs_names):
+        adata_int = adata_int[adata.obs_names].copy()
+
+    if adata_int.X is None:
+        adata_int = ad.AnnData(
+            X=adata.X,
+            obs=adata_int.obs,
+            var=adata.var,
+            uns=adata_int.uns,
+            obsm=adata_int.obsm,
+            varm=adata_int.varm,
+            obsp=adata_int.obsp,
+            varp=adata.varp,
+            layers=adata.layers,
+        )
+
+    if nmi_ or all_cluster_:
         print("NMI...")
         _, nmi_score = cluster_optimal_resolution(
             adata_int, label_key=label_key, cluster_key=cluster_key, metric=nmi
@@ -230,7 +253,7 @@ def metrics(
     else:
         nmi_score = np.nan
 
-    if ari_:
+    if ari_ or all_cluster_:
         print("ARI...")
         _, ari_score = cluster_optimal_resolution(
             adata_int, label_key=label_key, cluster_key=cluster_key, metric=ari
@@ -263,7 +286,7 @@ def metrics(
     else:
         asw_batch = np.nan
 
-    if clustasw_:
+    if clustasw_ or all_cluster_:
         print("Cluster ASW score...")
         _, silhouette_cluster_score = cluster_optimal_resolution(
             adata_int,
@@ -335,6 +358,7 @@ def metrics(
         scgraph_avg, scgraph_rank_pca, scgraph_corr_pca, scgraph_corr_weighted = (
             scgraph(adata_int, batch_key=batch_key, label_key=label_key, embed=embed)
         )
+        scgraph_avg = scgraph_avg.values[0]
     else:
         scgraph_avg = scgraph_rank_pca = scgraph_corr_pca = scgraph_corr_weighted = (
             np.nan
@@ -342,15 +366,26 @@ def metrics(
 
     if kbet_:
         print("kBET...")
-        kbet_score = kBET(
-            adata_int,
-            batch_key=batch_key,
-            label_key=label_key,
-            type_=metric_kwargs.get("type_", "knn"),
-            embed=embed,
-            scaled=True,
-            verbose=verbose,
-        )
+        if knn_only:
+            kbet_score = kBET(
+                adata_int,
+                batch_key=batch_key,
+                label_key=label_key,
+                type_="knn",
+                embed=embed,
+                scaled=True,
+                verbose=verbose,
+            )
+        else:
+            kbet_score = kBET(
+                adata_int,
+                batch_key,
+                label_key,
+                type_="embed",
+                embed=embed,
+                scaled=True,
+                verbose=verbose
+            )
     else:
         kbet_score = np.nan
 
@@ -465,7 +500,7 @@ def metrics(
     else:
         crossfold_logistic_score = np.nan
 
-    if batchari_:
+    if batchari_ or all_cluster_:
         print("Batch ARI...")
         _, batch_ari_score = cluster_optimal_resolution(
             adata_int, label_key=batch_key, cluster_key=cluster_key, metric=batch_ari
@@ -473,7 +508,7 @@ def metrics(
     else:
         batch_ari_score = np.nan
 
-    if bps_:
+    if bps_ or all_cluster_:
         print("Batch purity score...")
         _, batch_purity = cluster_optimal_resolution(
             adata_int,
@@ -484,8 +519,8 @@ def metrics(
     else:
         batch_purity = np.nan
 
-    if bcentropy_:
-        print("Batch Shannon entropy...")
+    if bcentropy_ or all_cluster_:
+        print("Batch Shannon entropy by cluster...")
         _, batch_shannon_entropy_score = cluster_optimal_resolution(
             adata_int,
             label_key=batch_key,
@@ -495,8 +530,8 @@ def metrics(
     else:
         batch_shannon_entropy_score = np.nan
 
-    if ccentropy_:
-        print("Cell type Shannon entropy...")
+    if ccentropy_ or all_cluster_:
+        print("Cell type Shannon entropy by cluster...")
         _, celltype_shannon_entropy_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=celltype_shannon_entropy
         )
@@ -529,7 +564,7 @@ def metrics(
     else:
         arif_score = np.nan
 
-    if bari_:
+    if bari_ or all_cluster_:
         print("Balanced ARI...")
         _, bARI_score = cluster_optimal_resolution(
             adata_int, label_key=label_key, cluster_key=cluster_key, metric=bARI
@@ -537,7 +572,7 @@ def metrics(
     else:
         bARI_score = np.nan
 
-    if bami_:
+    if bami_ or all_cluster_:
         print("Balanced AMI...")
         _, bami_score = cluster_optimal_resolution(
             adata_int, label_key=label_key, cluster_key=cluster_key, metric=bAMI
@@ -545,7 +580,7 @@ def metrics(
     else:
         bami_score = np.nan
 
-    if bvm_:
+    if bvm_ or all_cluster_:
         print("Balanced v-measure...")
         _, bv_measure_score = cluster_optimal_resolution(
             adata_int, label_key=label_key, cluster_key=cluster_key, metric=bv_measure
@@ -559,7 +594,7 @@ def metrics(
     else:
         bps_rf = bps_lr = np.nan
 
-    if ch_:
+    if ch_ or all_cluster_:
         print("Calinkski Harabasz score")
         _, ch_score = cluster_optimal_resolution(
             adata_int,
@@ -571,7 +606,7 @@ def metrics(
     else:
         ch_score = np.nan
 
-    if clustacc_:
+    if clustacc_ or all_cluster_:
         print("Clustering accuracy...")
         _, clustacc_score = cluster_optimal_resolution(
             adata_int,
@@ -582,7 +617,7 @@ def metrics(
     else:
         clustacc_score = np.nan
 
-    if f1_:
+    if f1_ or all_cluster_:
         print("F1 score...")
         _, f1sm = cluster_optimal_resolution(
             adata_int,
@@ -593,7 +628,7 @@ def metrics(
     else:
         f1sm = np.nan
 
-    if compact_:
+    if compact_ or all_cluster_:
         print("Compactness...")
         _, compactness_score = cluster_optimal_resolution(
             adata_int,
@@ -611,7 +646,7 @@ def metrics(
     else:
         kl_div_score = np.nan
 
-    if homo_:
+    if homo_ or all_cluster_:
         print("Homogeneity...")
         _, homogeneity_score = cluster_optimal_resolution(
             adata_int,
@@ -622,7 +657,7 @@ def metrics(
     else:
         homogeneity_score = np.nan
 
-    if fmi_:
+    if fmi_ or all_cluster_:
         print("Fowlkes Mallows...")
         _, fm_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=fowlkes_mallows
@@ -630,7 +665,7 @@ def metrics(
     else:
         fm_score = np.nan
 
-    if jacc_:
+    if jacc_ or all_cluster_:
         print("Jaccard index...")
         _, jaccard_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=jaccard_index
@@ -638,7 +673,7 @@ def metrics(
     else:
         jaccard_score = np.nan
 
-    if mcc_:
+    if mcc_ or all_cluster_:
         print("Matthews correlation coefficient")
         _, mcc_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=matthews_corrcoef
@@ -646,7 +681,7 @@ def metrics(
     else:
         mcc_score = np.nan
 
-    if modularity_:
+    if modularity_ or all_cluster_:
         print("Modularity...")
         _, modularity_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=modularity
@@ -660,7 +695,7 @@ def metrics(
     else:
         adgbd_score = np.nan
 
-    if awc_:
+    if awc_ or all_cluster_:
         print("Adjusted Wallace score...")
         _, aw_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=adjusted_wallace_score
@@ -668,7 +703,7 @@ def metrics(
     else:
         aw_score = np.nan
 
-    if ami_:
+    if ami_ or all_cluster_:
         print("Adjusted mutual information")
         _, ami_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=ami
@@ -682,7 +717,7 @@ def metrics(
     else:
         bras_score = np.nan
 
-    if cbe_:
+    if cbe_ or all_cluster_:
         print("Cluster batch entropy...")
         _, cluster_batch_entropy_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=cluster_batch_entropy
@@ -690,7 +725,7 @@ def metrics(
     else:
         cluster_batch_entropy_score = np.nan
 
-    if comp_:
+    if comp_ or all_cluster_:
         print("Completeness...")
         _, completeness_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=completeness
@@ -732,6 +767,12 @@ def metrics(
     else:
         nmi_fixed_score = np.nan
 
+    if nnmap_:
+        print("Nearest neighbor mean average precision")
+        nnmap_score = nnmap(adata_int, label_key, embed)
+    else:
+        nnmap_score = np.nan
+
     if ocs_:
         print("Over correction...")
         oc_score = over_correction(adata_int, label_key, embed=embed)
@@ -743,8 +784,14 @@ def metrics(
         pptpc_score = pptpc(adata_int, batch_key, label_key, embed=embed)
     else:
         pptpc_score = np.nan
+    
+    if pstdb_:
+        print("Proportion of same cell type but different batch...")
+        pstdb_score = pstdb(adata_int, batch_key, label_key, embed)
+    else:
+        pstdb_score = np.nan
 
-    if purity_:
+    if purity_ or all_cluster_:
         print("Purity...")
         _, purity_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=purity
@@ -764,7 +811,7 @@ def metrics(
     else:
         sv_score = np.nan
 
-    if separation_:
+    if separation_ or all_cluster_:
         _, separation_score = cluster_optimal_resolution(
             adata_int,
             label_key,
@@ -775,7 +822,7 @@ def metrics(
     else:
         separation_score = np.nan
 
-    if vm_:
+    if vm_ or all_cluster_:
         print("V measure...")
         _, v_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=v_measure
@@ -783,7 +830,7 @@ def metrics(
     else:
         v_score = np.nan
 
-    if vi_:
+    if vi_ or all_cluster_:
         print("Variation of information...")
         _, vi_score = cluster_optimal_resolution(
             adata_int, label_key, cluster_key, metric=variation_of_information
@@ -818,7 +865,7 @@ def metrics(
         "CLUSTACC": clustacc_score,
         "CBE": cluster_batch_entropy_score,
         "COMPACT": compactness_score,
-        "COMPLETE": completeness_score,
+        "COMP": completeness_score,
         "BKNN": crossbatch_knn_score,
         "BLOGREG": crossbatch_logistic_score,
         "FKNN": crossfold_knn_score,
@@ -837,15 +884,17 @@ def metrics(
         "KLDIV": kl_div_score,
         "KNNDIV": knn_div_score,
         "LDFDIFF": ldf_diff_score,
-        "NMI": nmi_score,
         "MCC": mcc_score,
         "MIX": mixing_score,
         "MODULARITY": modularity_score,
         "MORANI": moransi_score,
+        "NMI": nmi_score,
         "NMIF": nmi_fixed_score,
+        "NNMAP": nnmap_score,
         "OCS": oc_score,
         "PCR": pcr_score,
         "PPTPC": pptpc_score,
+        "PSTDB": pstdb_score,
         "PURITY": purity_score,
         "RKNN": retained_knn_score,
         "SV": sv_score,

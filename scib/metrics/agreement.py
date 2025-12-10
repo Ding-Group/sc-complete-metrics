@@ -13,7 +13,7 @@ def agreement(adata_pre, adata_post, batch_key, label_key, embed, n_neighbors=15
 
     10.1016/j.cell.2019.05.006
 
-    :param adata_pre: AnnData object without integration (must have original data)
+    :param adata_pre: AnnData object without integration
     :param adata_post: AnnData object with integrated embedding
     :param batch_key: Column in adata_pre.obs with batch information
     :param label_key: Column in adata.obs with ground truth labels
@@ -33,16 +33,23 @@ def agreement(adata_pre, adata_post, batch_key, label_key, embed, n_neighbors=15
     for c_key in adata_pre.obs[batch_key].unique():
         subset_pre = adata_pre[adata_pre.obs[batch_key] == c_key].copy()
 
-        sc.pp.highly_variable_genes(subset_pre, flavor='seurat_v3', layer='counts', n_top_genes=2000)
-        sc.tl.pca(subset_pre)
+        try:
+            sc.pp.highly_variable_genes(subset_pre, flavor='seurat_v3', layer='counts', n_top_genes=2000)
+            sc.tl.pca(subset_pre)
+        except ValueError:
+            # If there are too few cells to take highly variable genes,
+            # skip that step and just do PCA.
+            sc.tl.pca(subset_pre)
+        
+        neighbors_use = min(n_neighbors, subset_pre.n_obs - 1)
 
-        nn = NearestNeighbors(n_neighbors=n_neighbors+1).fit(subset_pre.obsm['X_pca'])
+        nn = NearestNeighbors(n_neighbors=neighbors_use+1).fit(subset_pre.obsm['X_pca'])
         _, indices = nn.kneighbors(subset_pre.obsm['X_pca'])
         indices1 = indices[:, 1:]
     
         subset_post = adata_post[adata_post.obs[batch_key] == c_key].copy()
         subset_post = adata_post[subset_pre.obs.index]  # Make sure the cells are in the same order
-        nn = NearestNeighbors(n_neighbors=n_neighbors+1).fit(subset_post.obsm[embed])
+        nn = NearestNeighbors(n_neighbors=neighbors_use+1).fit(subset_post.obsm[embed])
         _, indices = nn.kneighbors(subset_post.obsm[embed])
         indices2 = indices[:, 1:]
 
