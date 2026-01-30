@@ -8,7 +8,7 @@ from ..utils import check_adata, check_batch
 
 def jaccard_index(adata, label_key, cluster_key):
     """
-    Compute the Jaccard Index (macro-averaged) between predicted clusters and ground truth labels.
+    Compute the Jaccard Index (micro-averaged) between predicted clusters and ground truth labels.
 
     Parameters:
     - adata: AnnData object
