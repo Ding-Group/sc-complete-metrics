@@ -220,7 +220,7 @@ def lisi_graph_py(
 ):
     """
     Function to prepare call of compute_simpson_index
-    Compute LISI score on shortes path based on kNN graph provided in the adata object.
+    Compute LISI score on shortest path based on kNN graph provided in the adata object.
     By default, perplexity is chosen as 1/3 * number of nearest neighbours in the knn-graph.
     """
     # use no more than the available cores
@@ -275,6 +275,10 @@ def lisi_graph_py(
         mmwrite(mtx_file_path, connectivities, symmetry="general")
 
         # call knn-graph computation in Cpp
+        # NOTE: the Cpp knn-graph computation uses Dijkstra's algorithm
+        # to expand the number of nearest neighbors to n_neighbors.
+        # This makes sense because the default neighbors in graph construction is 15,
+        # but we need to expand to 90.
         root = pathlib.Path(scib.__file__).parent  # get current root directory
         cpp_file_path = (
             root / "knn_graph/knn_graph.o"
@@ -383,7 +387,7 @@ def compute_simpson_index_graph(
     chunk_ids = indices.columns.values.astype("int")
 
     # initialize
-    logU = np.log(perplexity)
+    logU = np.log(perplexity)  # 
     simpson = np.zeros(len(chunk_ids))
 
     # loop over all cells in chunk
@@ -413,6 +417,7 @@ def compute_simpson_index_graph(
         tries = 0
 
         # first get neighbor probabilities
+        # Binary search method to find the best beta
         while np.logical_and(np.abs(Hdiff) > tol, tries < 50):
             if Hdiff > 0:
                 betamin = beta
@@ -435,6 +440,10 @@ def compute_simpson_index_graph(
             simpson[i] = -1
             continue
             # then compute Simpson's Index
+        
+        # The above code calculates the probability distribution
+        # This last part just calculates the Simpson's index, which
+        # is the squared probability for each batch
         batch = batch_labels[knn_idx]
         B = convert_to_one_hot(batch, n_batches)
         sumP = np.matmul(P, B)  # sum P per batch
@@ -449,14 +458,18 @@ def Hbeta(D_row, beta):
     Helper function for simpson index computation
     """
     D_row[np.isnan(D_row)] = 0
-    P = np.exp(-D_row * beta)
+    P = np.exp(-D_row * beta)  # Unnormalized probability weights
     sumP = np.sum(P)
     if sumP == 0:
         H = 0
         P = np.zeros(len(D_row))
     else:
+        # Compute Shannon entropy of normalized distribution
+        # This equation is an alternative formulation that is equivalent
         H = np.log(sumP) + beta * np.sum(D_row * P) / sumP
         P /= sumP
+
+    # H is the entropy, P is the normalized probabilities
     return H, P
 
 

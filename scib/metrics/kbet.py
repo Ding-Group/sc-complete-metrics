@@ -1,9 +1,13 @@
 import logging
+from typing import Tuple
 
+import anndata as ad
 import numpy as np
 import pandas as pd
 import scanpy as sc
 import scipy.sparse
+import sklearn
+from scipy.stats import chi2
 
 from ..exceptions import OptionalDependencyNotInstalled, RLibraryNotFound
 from ..utils import check_adata, check_batch
@@ -117,7 +121,6 @@ def kBET(
     # prepare call of kBET per cluster
     kBET_scores = {"cluster": list(skipped), "kBET": [np.nan] * len(skipped)}
     for clus in labels:
-
         # subset by label
         adata_sub = adata_tmp[adata_tmp.obs[label_key] == clus, :].copy()
 
@@ -261,3 +264,202 @@ def kBET_single(matrix, batch, k0=10, knn=None, verbose=False):
     anndata2ri.deactivate()
 
     return score
+
+
+def calc_kBET_across_labels(
+    adata: ad.AnnData,
+    batch_key: str,
+    label_key: str,
+    embed: str = "X_integration",
+    alpha: float = 0.05,
+    n_jobs: int = -1,
+    temp_folder: str = None,
+) -> Tuple[float]:
+    """
+    Calculate the kBET metric using the Pegasus way, except averaged across labels.
+    This approach mirrors the scib kBET which splits up the data into label-specific
+    subsets and calculates the kBET per label.
+    """
+    counts = adata.obs.groupby(label_key).agg(
+        {label_key: "count", batch_key: "nunique"}
+    )
+    labels = counts.query(f"{label_key}>=10 and {batch_key} > 1").index
+    skipped = counts.index.difference(labels)
+    print(f"{len(skipped)} labels consist of a single batch or is too small. Skip.")
+    # prepare call of kBET per cluster
+    kBET_scores = {
+        "cluster": list(skipped),
+        "stat_mean": [np.nan] * len(skipped),
+        "pvalue_mean": [np.nan] * len(skipped),
+        "accept_rate": [np.nan] * len(skipped),
+    }
+
+    size_max = 2**31 - 1
+
+    for clus in labels:
+        # subset by label
+        adata_sub = adata[adata.obs[label_key] == clus, :].copy()
+
+        quarter_mean = np.floor(
+            np.mean(adata_sub.obs[batch_key].value_counts()) / 4
+        ).astype("int")
+        k0 = np.min([70, np.max([10, quarter_mean])])
+        # check k0 for reasonability
+        if k0 * adata_sub.n_obs >= size_max:
+            k0 = np.floor(size_max / adata_sub.n_obs).astype("int")
+
+        stat_mean, pvalue_mean, accept_rate = calc_kBET(
+            adata_sub, batch_key, embed, K=k0, alpha=alpha, n_jobs=n_jobs
+        )
+        kBET_scores["cluster"].append(clus)
+        kBET_scores["stat_mean"].append(stat_mean)
+        kBET_scores["pvalue_mean"].append(pvalue_mean)
+        kBET_scores["accept_rate"].append(accept_rate)
+
+    return np.nanmean(kBET_scores["stat_mean"]), np.nanmean(kBET_scores["pvalue_mean"]), np.nanmean(kBET_scores["accept_rate"])
+
+
+# Source: https://github.com/lilab-bcb/pegasus/blob/ef3f6ed281b6aa0b2b91777de7cf5ac8f9342405/pegasus/tools/nearest_neighbors.py#L397
+def calc_kBET(
+    adata: ad.AnnData,
+    batch_key: str,
+    embed: str = "X_integration",
+    K: int = 25,
+    alpha: float = 0.05,
+    n_jobs: int = -1,
+    temp_folder: str = None,
+) -> Tuple[float]:
+    """Calculate the kBET metric of the data regarding a specific sample attribute and embedding.
+
+    The kBET metric is defined in [Büttner18]_, which measures if cells from different samples mix well in their local neighborhood.
+
+    Parameters
+    ----------
+    data: ``anndata.AnnData``
+        Annotated data matrix with rows for cells and columns for genes.
+
+    batch_key: ``str``
+        The sample attribute to consider. Must exist in ``adata.obs``.
+
+    embed: ``str``, optional, default: ``"X_integration"``
+        The embedding representation to be used.
+
+    K: ``int``, optional, default: ``25``
+        Number of nearest neighbors, using L2 metric.
+
+    alpha: ``float``, optional, default: ``0.05``
+        Acceptance rate threshold. A cell is accepted if its kBET p-value is greater than or equal to ``alpha``.
+
+    n_jobs: ``int``, optional, default: ``-1``
+        Number of threads used. If ``-1``, use all physical CPU cores.
+
+    random_state: ``int``, optional, default: ``0``
+        Random seed set for reproducing results.
+
+    temp_folder: ``str``, optional, default: ``None``
+        Temporary folder for joblib execution.
+
+    use_cache: ``bool``, optional, default: ``True``
+        If use cache results for kNN.
+
+    Returns
+    -------
+    stat_mean: ``float``
+        Mean kBET chi-square statistic over all cells.
+
+    pvalue_mean: ``float``
+        Mean kBET p-value over all cells.
+
+    accept_rate: ``float``
+        kBET Acceptance rate of the sample.
+
+    Examples
+    --------
+    >>> pg.calc_kBET(data, attr = 'Channel')
+
+    >>> pg.calc_kBET(data, attr = 'Channel', rep = 'umap')
+    """
+    # assert attr in adata.obs
+    if adata.obs[batch_key].dtype.name != "category":
+        adata.obs[batch_key] = pd.Categorical(adata.obs[batch_key])
+
+    ideal_dist = (
+        adata.obs[batch_key].value_counts(normalize=True, sort=False).values
+    )  # ideal no batch effect distribution
+    nsample = adata.shape[0]
+    nbatch = ideal_dist.size
+
+    attr_values = adata.obs[batch_key].cat.rename_categories(range(nbatch)).values
+
+    # Explicitly want to include itself as one of the nearest neighbors
+    nearestNeighbors = sklearn.neighbors.NearestNeighbors(n_neighbors=K, n_jobs=n_jobs)
+    nearestNeighbors.fit(adata.obsm[embed])
+    knn_indices = nearestNeighbors.kneighbors(adata.obsm[embed], return_distance=False)
+
+    # partition into chunks
+    n_jobs = min(eff_n_jobs(n_jobs), nsample)
+    starts = np.zeros(n_jobs + 1, dtype=int)
+    quotient = nsample // n_jobs
+    remainder = nsample % n_jobs
+    for i in range(n_jobs):
+        starts[i + 1] = starts[i] + quotient + (1 if i < remainder else 0)
+
+    from joblib import Parallel, delayed, parallel_backend
+
+    with parallel_backend("loky", inner_max_num_threads=1):
+        kBET_arr = np.concatenate(
+            Parallel(n_jobs=n_jobs, temp_folder=temp_folder)(
+                delayed(calc_kBET_for_one_chunk)(
+                    knn_indices[starts[i] : starts[i + 1], :],
+                    attr_values,
+                    ideal_dist,
+                    K,
+                )
+                for i in range(n_jobs)
+            )
+        )
+
+    res = kBET_arr.mean(axis=0)
+    stat_mean = res[0]
+    pvalue_mean = res[1]
+    # If the p-value is greater than alpha, then the mixing is good as the
+    # alternative hypothesis was rejected.
+    accept_rate = (kBET_arr[:, 1] >= alpha).sum() / nsample
+
+    return (stat_mean, pvalue_mean, accept_rate)
+
+
+def calc_kBET_for_one_chunk(knn_indices, attr_values, ideal_dist, K):
+    dof = ideal_dist.size - 1
+
+    ns = knn_indices.shape[0]
+    results = np.zeros((ns, 2))
+    for i in range(ns):
+        observed_counts = (
+            pd.Series(attr_values[knn_indices[i, :]]).value_counts(sort=False).values
+        )
+        expected_counts = ideal_dist * K
+        stat = np.sum(
+            np.divide(
+                np.square(np.subtract(observed_counts, expected_counts)),
+                expected_counts,
+            )
+        )
+        p_value = 1 - chi2.cdf(stat, dof)
+        results[i, 0] = stat
+        results[i, 1] = p_value
+
+    return results
+
+
+def eff_n_jobs(n_jobs: int) -> int:
+    """If n_jobs < 0, set it as the number of physical cores _cpu_count"""
+    if n_jobs > 0:
+        return n_jobs
+
+    import psutil
+
+    _cpu_count = psutil.cpu_count(logical=False)
+    if _cpu_count is None:
+        _cpu_count = psutil.cpu_count(logical=True)
+    return _cpu_count

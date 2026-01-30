@@ -1,11 +1,9 @@
 import numpy as np
 import pandas as pd
-from scipy.optimize import linear_sum_assignment
+from sklearn.metrics import accuracy_score
+
 from ..utils import check_adata, check_batch
 
-
-# TODO: Should this be a one-to-one matching between clusters to labels,
-# or should we have multiple clusters map to one label?
 
 def clustering_accuracy(adata, label_key, cluster_key):
     """
@@ -25,26 +23,19 @@ def clustering_accuracy(adata, label_key, cluster_key):
     float
         Clustering accuracy after optimal one-to-one label matching.
     """
-    # Validate input AnnData and keys
     check_adata(adata)
     check_batch(cluster_key, adata.obs)
     check_batch(label_key, adata.obs)
 
-    true_series = adata.obs[label_key].astype('category')
-    labels_true = true_series.cat.codes.to_numpy()
+    labels = adata.obs[label_key].to_numpy()
+    clusters = adata.obs[cluster_key].to_numpy()
 
-    pred_series = adata.obs[cluster_key].astype('category')
-    labels_pred = pred_series.cat.codes.to_numpy()
+    labels_df = pd.DataFrame({"labels": labels, "clusters": clusters})
+    cluster_map = (
+        labels_df.groupby("clusters")["labels"]
+        .agg(lambda x: pd.Series.mode(x)[0])
+        .to_dict()
+    )
+    labels_df['labels_pred']=labels_df['clusters'].map(cluster_map)
 
-    # Build contingency matrix between predicted and true labels
-    n_classes = max(labels_pred.max(), labels_true.max()) + 1
-    contingency = np.zeros((n_classes, n_classes), dtype=np.int64)
-    for i in range(labels_pred.shape[0]):
-        contingency[labels_pred[i], labels_true[i]] += 1
-
-    # Solve assignment problem (Hungarian) for best label matching
-    row_ind, col_ind = linear_sum_assignment(contingency.max() - contingency)
-
-    # Compute accuracy as sum of matches over total cells
-    accuracy = contingency[row_ind, col_ind].sum() / labels_pred.shape[0]
-    return float(accuracy)
+    return accuracy_score(labels_df['labels'], labels_df['labels_pred'])

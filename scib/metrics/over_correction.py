@@ -50,5 +50,4 @@ def over_correction(
     _, indices = nn.kneighbors(adata.obsm[embed])
     indices = indices[:, 1:]
 
-    # 4. Call core function
     return over_correction_from_graph(labels, indices)

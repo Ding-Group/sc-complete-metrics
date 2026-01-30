@@ -1,4 +1,5 @@
-from sklearn.metrics.cluster import pair_confusion_matrix
+import pandas as pd
+from sklearn.metrics import f1_score
 
 from ..utils import check_adata, check_batch
 
@@ -19,14 +20,15 @@ def f1_score_macro(adata, label_key, cluster_key):
     check_batch(cluster_key, adata.obs)
     check_batch(label_key, adata.obs)
 
-    labels_true = adata.obs[label_key].to_numpy()
-    labels_pred = adata.obs[cluster_key].to_numpy()
+    labels = adata.obs[label_key].to_numpy()
+    clusters = adata.obs[cluster_key].to_numpy()
 
-    conf_mat = pair_confusion_matrix(labels_true, labels_pred)
-    tp = conf_mat[1, 1]
-    fp = conf_mat[0, 1]
-    fn = conf_mat[1, 0]
+    labels_df = pd.DataFrame({"labels": labels, "clusters": clusters})
+    cluster_map = (
+        labels_df.groupby("clusters")["labels"]
+        .agg(lambda x: pd.Series.mode(x)[0])
+        .to_dict()
+    )
+    labels_df['labels_pred']=labels_df['clusters'].map(cluster_map)
 
-    precision = tp / (tp + fp)
-    recall = tp / (tp + fn)
-    return 2 * precision * recall / (precision + recall)
+    return f1_score(labels_df['labels'], labels_df['labels_pred'], average='macro')

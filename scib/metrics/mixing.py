@@ -22,7 +22,6 @@ def mixing(adata, batch_key, embed, k=5, max_k=300):
     nn = NearestNeighbors(n_neighbors=max_k + 1).fit(adata.obsm[embed])
     _, indices = nn.kneighbors(adata.obsm[embed])
     indices = indices[:, 1:]
-    # import pdb; pdb.set_trace()
     all_ranks = []
     for ind in indices:
         batch = batches.iloc[ind]

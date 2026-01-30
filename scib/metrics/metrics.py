@@ -38,10 +38,11 @@ from .highly_variable_genes import hvg_overlap
 from .homogeneity import homogeneity
 from .isolated_labels import isolated_labels
 from .jaccard import jaccard_index
-from .kbet import kBET
+from .kbet import kBET, calc_kBET, calc_kBET_across_labels
 from .kl_cluster import kl_cluster
 from .kl_divergence import kl_divergence
 from .knn_divergence import knn_divergence
+from .ksim import ksim
 from .ldf_diff import ldf_diff
 from .lisi import clisi_graph, ilisi_graph
 from .matthews_corrcoef import matthews_corrcoef
@@ -185,6 +186,7 @@ def metrics(
     klc_=False,
     kldiv_=False,
     knndiv_=False,
+    ksim_=False,
     ldfdiff_=False,
     clisi_=False,
     ilisi_=False,
@@ -366,28 +368,19 @@ def metrics(
 
     if kbet_:
         print("kBET...")
-        if knn_only:
-            kbet_score = kBET(
-                adata_int,
-                batch_key=batch_key,
-                label_key=label_key,
-                type_="knn",
-                embed=embed,
-                scaled=True,
-                verbose=verbose,
-            )
-        else:
-            kbet_score = kBET(
-                adata_int,
-                batch_key,
-                label_key,
-                type_="embed",
-                embed=embed,
-                scaled=True,
-                verbose=verbose
-            )
+
+        _, _, kbet_score = calc_kBET_across_labels(
+            adata_int,
+            batch_key,
+            label_key,
+            embed
+        )
+        _, _, kbet_no_label_score = calc_kBET(
+            adata_int, batch_key, embed
+        )
     else:
         kbet_score = np.nan
+        kbet_no_label_score = np.nan
 
     if clisi_:
         print("cLISI score...")
@@ -749,6 +742,12 @@ def metrics(
     else:
         knn_div_score = np.nan
 
+    if ksim_:
+        print("kSIM...")
+        ksim_score = ksim(adata_int, label_key, embed)
+    else:
+        ksim_score = np.nan
+
     if mix_:
         print("Mixing score...")
         mixing_score = mixing(adata_int, batch_key, embed)
@@ -881,8 +880,10 @@ def metrics(
         "ISOASW": il_score_asw,
         "JACC": jaccard_score,
         "KBET": kbet_score,
+        "KBETALL": kbet_no_label_score,
         "KLDIV": kl_div_score,
         "KNNDIV": knn_div_score,
+        "KSIM": ksim_score,
         "LDFDIFF": ldf_diff_score,
         "MCC": mcc_score,
         "MIX": mixing_score,

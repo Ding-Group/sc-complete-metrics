@@ -33,10 +33,11 @@ from .highly_variable_genes import hvg_overlap
 from .homogeneity import homogeneity
 from .isolated_labels import isolated_labels, isolated_labels_asw, isolated_labels_f1
 from .jaccard import jaccard_index
-from .kbet import kBET
+from .kbet import kBET, calc_kBET, calc_kBET_across_labels
 from .kl_cluster import kl_cluster
 from .kl_divergence import kl_divergence
 from .knn_divergence import knn_divergence
+from .ksim import ksim
 from .ldf_diff import ldf_diff
 from .lisi import clisi_graph, ilisi_graph, lisi_graph
 from .matthews_corrcoef import matthews_corrcoef
@@ -81,6 +82,8 @@ __all__ = [
     "bras",
     "bv_measure",
     "calinski_harabasz",
+    "calc_kBET",
+    "calc_kBET_across_labels",
     "cell_cycle",
     "cell_specific_mixing_score",
     "cilisi",
@@ -109,6 +112,7 @@ __all__ = [
     "kl_cluster",
     "kl_divergence",
     "knn_divergence",
+    "ksim",
     "ldf_diff",
     "clisi_graph",
     "ilisi_graph",

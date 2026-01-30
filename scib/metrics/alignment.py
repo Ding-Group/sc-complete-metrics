@@ -28,7 +28,7 @@ def alignment(adata_int, batch_key: str, embed: str, n_neighbors: int = None) ->
     
     if n_neighbors is None:
         n_neighbors = adata_int.n_obs // 100
-    nn = NearestNeighbors(n_neighbors=n_neighbors+1).fit(X)
+    nn = NearestNeighbors(n_neighbors=n_neighbors+1, n_jobs=-1).fit(X)
     knn_graph = nn.kneighbors(X, return_distance=False)[:, 1:]
     scores = []
     for i, neighbors in enumerate(knn_graph):
