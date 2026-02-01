@@ -458,7 +458,6 @@ def Hbeta(D_row, beta):
         H = np.log(sumP) + beta * np.sum(D_row * P) / sumP
         P /= sumP
 
-    # H is the entropy, P is the normalized probabilities
     return H, P
 
 
