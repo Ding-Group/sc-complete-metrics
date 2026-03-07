@@ -26,6 +26,7 @@ from .clustering import cluster_optimal_resolution
 from .clustering_accuracy import clustering_accuracy
 from .compactness import compactness
 from .completeness import completeness
+from .corr_mse import corr_mse
 from .crossbatch_knn import crossbatch_knn
 from .crossbatch_logistic import crossbatch_logistic
 from .crossfold_knn import crossfold_knn
@@ -169,6 +170,7 @@ def metrics(
     clustacc_=False,
     compact_=False,
     comp_=False,
+    corr_mse_=False,
     bknn_=False,
     blogreg_=False,
     fknn_=False,
@@ -310,13 +312,29 @@ def metrics(
 
     if ccc_:
         print("cell cycle effect...")
+
+        # Small thing to use gene names, not Ensembl IDs
+        if 'gene_name' in adata.var.columns:
+            adata_copy = adata[:, ~adata.var['gene_name'].isna()].copy()
+            adata_copy.var = adata_copy.var.set_index('gene_name')
+            adata_copy.var_names = adata_copy.var_names.astype('object')
+            adata_copy.var_names_make_unique()
+        else:
+            adata_copy = adata
+        if 'gene_name' in adata_int.var.columns:
+            adata_int_copy = adata_int[:, ~adata_int.var['gene_name'].isna()].copy()
+            adata_int_copy.var = adata_int_copy.var.set_index('gene_name')
+            adata_int_copy.var_names = adata_int_copy.var_names.astype('object')
+            adata_int_copy.var_names_make_unique()
+        else:
+            adata_int_copy = adata_int
         cc_score = cell_cycle(
-            adata,
-            adata_int,
+            adata_copy,
+            adata_int_copy,
             batch_key=batch_key,
             embed=embed,
             agg_func=np.mean,
-            organism=organism,
+            organism=adata.uns['species'],
         )
     else:
         cc_score = np.nan
@@ -633,6 +651,12 @@ def metrics(
     else:
         compactness_score = np.nan
 
+    if corr_mse_:
+        print("Corr-MSE...")
+        corr_mse_score = corr_mse(adata, adata_int, batch_key, embed, embed_pre)
+    else:
+        corr_mse_score = np.nan
+
     if kldiv_:
         print("KL divergence...")
         kl_div_score = kl_divergence(adata_int, batch_key, embed)
@@ -865,6 +889,7 @@ def metrics(
         "CBE": cluster_batch_entropy_score,
         "COMPACT": compactness_score,
         "COMP": completeness_score,
+        "CORRMSE": corr_mse_score,
         "BKNN": crossbatch_knn_score,
         "BLOGREG": crossbatch_logistic_score,
         "FKNN": crossfold_knn_score,

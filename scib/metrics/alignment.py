@@ -5,7 +5,7 @@ from sklearn.neighbors import NearestNeighbors
 from ..utils import check_adata, check_batch
 
 
-def alignment(adata_int, batch_key: str, embed: str, n_neighbors: int = None) -> float:
+def alignment(adata_int, batch_key: str, embed: str, n_neighbors: int = None, seed: int = 0) -> float:
     """Alignment score
 
     Computes the alignment score from Butler et al. "Integrating single-cell
@@ -22,10 +22,19 @@ def alignment(adata_int, batch_key: str, embed: str, n_neighbors: int = None) ->
     check_adata(adata_int)
     check_batch(batch_key, adata_int.obs)
 
+    # Downsample the data to the size of the smallest batch
+    smallest_batch = adata_int.obs[batch_key].value_counts().min()
+    sampled_indices = (
+        adata_int.obs.groupby(batch_key)
+        .sample(n=smallest_batch, random_state=seed)
+        .index
+    )
+    adata_int = adata_int[sampled_indices].copy()
+
     X = np.asarray(adata_int.obsm[embed])
     batches = adata_int.obs[batch_key].to_numpy()
     n_batches = len(adata_int.obs[batch_key].unique())
-    
+
     if n_neighbors is None:
         n_neighbors = adata_int.n_obs // 100
     nn = NearestNeighbors(n_neighbors=n_neighbors+1, n_jobs=-1).fit(X)

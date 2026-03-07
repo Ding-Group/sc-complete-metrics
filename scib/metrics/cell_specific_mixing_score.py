@@ -72,21 +72,13 @@ def cell_specific_mixing_score(
     RuntimeError
         If rpy2/R/CellMixS are unavailable or the R call fails.
     """
-    # Step 1: checks & embedding
     check_adata(adata)
-
-    # Ensure an embedding exists if we don't want R to run PCA.
-    if embed not in adata.obsm and not r_run_pca_when_embed_missing:
-        # Keep a buffer of PCs to safely cover n_dim.
-        sc.pp.pca(adata, n_comps=max(n_dim, 50))
-        embed = "X_pca"
 
     if n_dim is None:
         n_dim = adata.obsm[embed].shape[1]
     elif n_dim > adata.obsm[embed].shape[1]:
         raise ValueError("n_dim is greater than embedding dim")
 
-    # Step 2: rpy2 bridge
     try:
         import rpy2.robjects as ro
         from rpy2.robjects.packages import importr
@@ -94,12 +86,11 @@ def cell_specific_mixing_score(
         from rpy2.robjects import conversion, default_converter
     except Exception as e:
         raise RuntimeError(
-            "rpy2 is required but not available. Install with `pip install rpy2`."
+            "Failure importing rpy2"
         ) from e
 
     numpy_converter = default_converter + numpy2ri.converter + anndata2ri.converter
     with conversion.localconverter(numpy_converter):
-        # Step 3–5: build SCE in R → map params → call CellMixS::cms
         try:
             importr("SingleCellExperiment")
             importr("SummarizedExperiment")
@@ -107,7 +98,6 @@ def cell_specific_mixing_score(
             importr("CellMixS")
             r = ro.r
 
-            # 4.Map parameters to R (note None→NA/NULL where required).
             r.assign("k", int(k))
             r.assign("dim_red", embed)
             r.assign('group_key', batch_key)
@@ -123,13 +113,11 @@ def cell_specific_mixing_score(
             del adata.uns
             r.assign("sce", adata)
 
-            # 5.Call CellMixS::cms (kNN/AD test/smoothing are done in R).
             r('sce <- CellMixS::cms(sce, k = k, group = group_key, '
             'dim_red = dim_red, n_dim = n_dim, cell_min = cell_min, '
             'k_min = k_min, batch_min = batch_min, smooth = smooth, '
             'unbalanced = unbalanced, res_name = res_name, BPPARAM = bp)')
 
-            # Fetch result column.
             result_col = "cms" if res_name is None else f"cms.{res_name}"
             r.assign("result_col", result_col)
             cms_vals = np.array(
@@ -142,7 +130,6 @@ def cell_specific_mixing_score(
                 "Calling R CellMixS::cms failed. Ensure R and required R packages are installed."
             ) from e
 
-    # Step 6: write back & return
     if return_per_cell:
         return cms_vals
     return float(np.nanmean(cms_vals))

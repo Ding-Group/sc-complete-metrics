@@ -11,8 +11,8 @@ def adjusted_wallace_score(adata, label_key, cluster_key, direction="1->2"):
     labels_true = adata.obs[label_key].astype('category').cat.codes
     labels_pred = adata.obs[cluster_key].astype('category').cat.codes
 
-    _, y1c = np.unique(labels_true, return_inverse=True)
-    _, y2c = np.unique(labels_pred, return_inverse=True)
+    _, y1c = np.unique(labels_pred, return_inverse=True)
+    _, y2c = np.unique(labels_true, return_inverse=True)
 
     K1 = y1c.max() + 1
     K2 = y2c.max() + 1

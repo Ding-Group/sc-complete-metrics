@@ -16,6 +16,9 @@ def scaled_variance(adata, batch_key, embed, n_comps=None):
     check_batch(batch_key, adata.obs)
 
     if n_comps is None:
+        # We can't really recommend a default value for n_comps because
+        # in most methods, the embedding dims are not in order of 
+        # decreasing importance.
         n_comps = adata.obsm[embed].shape[1]
 
     batches = np.unique(adata.obs[batch_key])
@@ -29,8 +32,10 @@ def scaled_variance(adata, batch_key, embed, n_comps=None):
 
         for batch in batches:
             component_batch = adata.obsm[embed][adata.obs[batch_key] == batch, i]
-            if len(component_batch) == 0:
+            if len(component_batch) <= 1:
                 continue
-            svs.append(np.var(component_batch) / denom)
+
+            # Closer the value is to 1, the better.
+            svs.append(1 - np.abs(1 - np.var(component_batch) / denom))
 
     return np.mean(svs)

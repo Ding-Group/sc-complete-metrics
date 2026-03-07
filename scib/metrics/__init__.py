@@ -21,6 +21,7 @@ from .clustering import cluster_optimal_resolution, get_resolutions, opt_louvain
 from .clustering_accuracy import clustering_accuracy
 from .compactness import compactness
 from .completeness import completeness
+from .corr_mse import corr_mse
 from .crossbatch_knn import crossbatch_knn
 from .crossbatch_logistic import crossbatch_logistic
 from .crossfold_knn import crossfold_knn
@@ -94,6 +95,7 @@ __all__ = [
     "clustering_accuracy",
     "compactness",
     "completeness",
+    "corr_mse",
     "crossbatch_knn",
     "crossbatch_logistic",
     "crossfold_knn",

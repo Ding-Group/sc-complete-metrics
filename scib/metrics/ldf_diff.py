@@ -105,7 +105,6 @@ sce_pre_list[[s]] <- sce[, colData(sce)${batch_key} == s]
             dtype=float,
         )
 
-
     if return_per_cell:
         return cms_vals
-    return float(np.nanmean(cms_vals))
+    return 1 - float(np.nanmean(np.abs(cms_vals)))
