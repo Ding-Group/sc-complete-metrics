@@ -4,7 +4,7 @@ from sklearn.neighbors import NearestNeighbors
 from ..utils import check_adata, check_batch
 
 
-def pptpc(adata, batch_key, label_key, embed, n_neighbors=100):
+def pptpc(adata, batch_key, label_key, embed, n_neighbors: int = 100):
     """Proportion of Positive and True Positive Cells
 
     :param adata: AnnData object.

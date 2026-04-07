@@ -18,9 +18,8 @@ def calinski_harabasz(adata, label_key, cluster_key, embed):
     check_batch(cluster_key, adata.obs)
 
     X = adata.obsm[embed]
-    labels = adata.obs[cluster_key].to_numpy()
 
     if adata.obs[cluster_key].nunique() == 1:
         return np.nan
-
-    return calinski_harabasz_score(X, labels)
+    clusters = adata.obs[cluster_key].to_numpy()
+    return calinski_harabasz_score(X, clusters)

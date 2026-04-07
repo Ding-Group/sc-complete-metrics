@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 
 
-def adgbd(adata, batch_key, embed, n_neighbors=50):
+def adgbd(adata, batch_key, embed, n_neighbors: int = 50):
     """Average deviation from global batch distribution
 
     :param adata: AnnData object.

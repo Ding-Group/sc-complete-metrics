@@ -5,7 +5,7 @@ from sklearn.neighbors import NearestNeighbors
 from ..utils import check_adata, check_batch
 
 
-def agreement(adata_pre, adata_post, batch_key, label_key, embed, n_neighbors=15):
+def agreement(adata_pre, adata_post, batch_key, label_key, embed, n_comps: int = 50, n_neighbors: int = 15):
     """Agreement score
 
     Computes the agreement score from Welch et al. "Single-cell multi-omic
@@ -35,11 +35,11 @@ def agreement(adata_pre, adata_post, batch_key, label_key, embed, n_neighbors=15
 
         try:
             sc.pp.highly_variable_genes(subset_pre, flavor='seurat_v3', layer='counts', n_top_genes=2000)
-            sc.tl.pca(subset_pre)
+            sc.tl.pca(subset_pre, n_comps=n_comps)
         except ValueError:
             # If there are too few cells to take highly variable genes,
             # skip that step and just do PCA.
-            sc.tl.pca(subset_pre)
+            sc.tl.pca(subset_pre, n_comps=n_comps)
         
         neighbors_use = min(n_neighbors, subset_pre.n_obs - 1)
 

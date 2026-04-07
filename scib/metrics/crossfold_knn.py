@@ -6,7 +6,7 @@ import numpy as np
 from ..utils import check_adata, check_batch
 
 
-def crossfold_knn(adata, label_key, embed, n_splits=5, n_neighbors=21, random_state=0):
+def crossfold_knn(adata, label_key, embed, n_splits: int = 5, n_neighbors: int = 21, random_state=0):
     check_adata(adata)
     check_batch(label_key, adata.obs)
 

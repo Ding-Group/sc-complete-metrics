@@ -1,11 +1,12 @@
 import numpy as np
 from scipy.stats import entropy
 from sklearn.neighbors import NearestNeighbors
+from numba import njit
 
 from ..utils import check_adata, check_batch
 
 
-def shannon_entropy_nn(adata, batch_key, label_key, embed, n_neighbors=50):
+def shannon_entropy_nn(adata, batch_key, label_key, embed, n_neighbors: int = 50):
     """Shannon entropy
 
     Compute the batch and cell type Shannon entropy within each cell's
@@ -61,3 +62,98 @@ def entropy_(selected_labels, n_labels):
 
     # Normalize by log(n_labels)
     return h / np.log2(n_labels)
+
+
+@njit
+def Hbeta(D_row, beta):
+    """
+    Helper function for simpson index computation
+    """
+    D_row[np.isnan(D_row)] = 0
+    P = np.exp(-D_row * beta)
+    sumP = np.sum(P)
+    if sumP == 0:
+        H = 0
+        P = np.zeros(len(D_row))
+    else:
+        H = np.log(sumP) + beta * np.sum(D_row * P) / sumP
+        P /= sumP
+
+    return H, P
+
+
+def get_weighted_probs(D_act, target_perplexity, tol=1e-5):
+    """
+    Binary search for beta to match target perplexity.
+    """
+    logU = np.log(target_perplexity)
+    beta = 1.0
+    betamin = -np.inf
+    betamax = np.inf
+    
+    H, P = Hbeta(D_act, beta)
+    Hdiff = H - logU
+    tries = 0
+
+    while np.abs(Hdiff) > tol and tries < 50:
+        if Hdiff > 0:
+            betamin = beta
+            beta = (beta + betamax) / 2 if betamax != np.inf else beta * 2
+        else:
+            betamax = beta
+            beta = (beta + betamin) / 2 if betamin != -np.inf else beta / 2
+        
+        H, P = Hbeta(D_act, beta)
+        Hdiff = H - logU
+        tries += 1
+        
+    return P
+
+def shannon_entropy_nn_weighted(adata, batch_key, label_key, embed, n_neighbors=90, perplexity=30):
+    """
+    Shannon entropy weighted by distance-based Gaussian kernels (LISI-style).
+    """
+    # 1. Get Neighbors and Distances
+    nn = NearestNeighbors(n_neighbors=n_neighbors + 1).fit(adata.obsm[embed])
+    distances, indices = nn.kneighbors(adata.obsm[embed])
+    
+    # Remove self-neighbor
+    distances = distances[:, 1:]
+    indices = indices[:, 1:]
+
+    # Prep Labels
+    batches = adata.obs[batch_key].astype("category").cat.codes.values
+    labels = adata.obs[label_key].astype("category").cat.codes.values
+    n_batches = len(np.unique(batches))
+    n_labels = len(np.unique(labels))
+
+    batch_entropies = []
+    label_entropies = []
+
+    for i in range(indices.shape[0]):
+        # 2. Get Gaussian weights P for this cell's neighborhood
+        P = get_weighted_probs(distances[i], perplexity)
+        
+        # Neighbor indices for this cell
+        neighbor_idx = indices[i]
+        
+        # 3. Aggregate probabilities by category
+        # Batch Entropy
+        batch_probs = np.zeros(n_batches)
+        for b_idx, weight in zip(batches[neighbor_idx], P):
+            batch_probs[b_idx] += weight
+
+        # Label Entropy
+        label_probs = np.zeros(n_labels)
+        for l_idx, weight in zip(labels[neighbor_idx], P):
+            label_probs[l_idx] += weight
+
+        # 4. Compute Shannon Entropy (Normalized)
+        # We use base 2 for consistency with your original snippet
+        h_batch = entropy(batch_probs, base=2) / np.log2(n_batches) if n_batches > 1 else 0
+        h_label = entropy(label_probs, base=2) / np.log2(n_labels) if n_labels > 1 else 0
+        
+        batch_entropies.append(h_batch)
+        label_entropies.append(h_label)
+
+    return np.mean(batch_entropies), 1 - np.mean(label_entropies)

@@ -8,7 +8,7 @@ def kl_divergence(
     adata,
     batch_key,
     embed,
-    k=None,
+    k: int = None,
 ):
     """
     Compute average KL divergence between local and global batch distribution.

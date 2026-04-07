@@ -3,7 +3,7 @@ import scanpy as sc
 from sklearn.neighbors import NearestNeighbors
 
 
-def mixing(adata, batch_key, embed, k=5, max_k=300):
+def mixing(adata, batch_key, embed, k: int = 5, max_k: int = 300):
     """Mixing metric
 
     As defined by Stuart et al., 2019.

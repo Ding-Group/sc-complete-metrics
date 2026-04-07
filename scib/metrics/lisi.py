@@ -41,8 +41,8 @@ def ilisi_graph(
     adata,
     batch_key,
     type_,
-    use_rep="X_emb",
-    k0=90,
+    use_rep: str = "X_emb",
+    k0: int = 90,
     subsample=None,
     scale=True,
     n_cores=1,
@@ -50,7 +50,7 @@ def ilisi_graph(
 ):
     """Integration LISI (iLISI) score
 
-    Local Inverse Simpson’s Index metrics adapted from `Korsunsky et al. 2019`_ to run on all full
+    Local Inverse Simpson's Index metrics adapted from `Korsunsky et al. 2019`_ to run on all full
     feature, embedding and kNN integration outputs via shortest path-based distance computation on single-cell kNN
     graphs.
     By default, this function returns a value scaled between 0 and 1 instead of the original LISI range of 0 to the
@@ -118,9 +118,9 @@ def clisi_graph(
     adata,
     label_key,
     type_,
-    use_rep="X_emb",
-    batch_key=None,
-    k0=90,
+    use_rep: str = "X_emb",
+    batch_key: str = None,
+    k0: int = 90,
     subsample=None,
     scale=True,
     n_cores=1,
@@ -212,7 +212,7 @@ def recompute_knn(adata, type_, use_rep="X_emb"):
 def lisi_graph_py(
     adata,
     obs_key,
-    n_neighbors=90,
+    n_neighbors: int = 90,
     perplexity=None,
     subsample=None,
     n_cores=1,
@@ -343,7 +343,7 @@ def compute_simpson_index_graph(
     file_prefix=None,
     batch_labels=None,
     n_batches=None,
-    n_neighbors=90,
+    n_neighbors: int = 90,
     perplexity=30,
     chunk_no=0,
     tol=1e-5,

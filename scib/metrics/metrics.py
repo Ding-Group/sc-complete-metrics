@@ -1,3 +1,5 @@
+import inspect
+
 import anndata as ad
 import numpy as np
 import pandas as pd
@@ -14,7 +16,6 @@ from .bAMI import bAMI
 from .bARI import bARI
 from .batch_ari import batch_ari
 from .batch_probing_score import batch_probing_score
-from .batch_purity_score import batch_purity_score
 from .bras import bras
 from .bv_measure import bv_measure
 from .calinski_harabasz import calinski_harabasz
@@ -56,13 +57,13 @@ from .over_correction import over_correction
 from .pcr import pcr_comparison
 from .pptpc import pptpc
 from .pstdb import pstdb
-from .purity import purity
+from .purity import purity, batch_purity
 from .retained_knn import retained_knn
 from .sc_graph import scgraph
 from .scaled_variance import scaled_variance
 from .separation import separation
 from .shannon_entropy_cluster import batch_shannon_entropy, celltype_shannon_entropy
-from .shannon_entropy_nn import shannon_entropy_nn
+from .shannon_entropy_nn import shannon_entropy_nn, shannon_entropy_nn_weighted
 from .silhouette import silhouette, silhouette_batch, silhouette_cluster
 from .trajectory import trajectory_conservation
 from .v_measure import v_measure
@@ -164,18 +165,20 @@ def metrics(
     bvm_=False,
     ch_=False,
     ccc_=False,
+    cch_=False,
     csmc_=False,
     cbe_=False,
     cilisi_=False,
     clustacc_=False,
     compact_=False,
     comp_=False,
-    corr_mse_=False,
+    corrmse_=False,
     bknn_=False,
     blogreg_=False,
     fknn_=False,
     flogreg_=False,
     dbi_=False,
+    clustdbi_=False,
     f1_=False,
     fmi_=False,
     gc_=False,
@@ -185,7 +188,6 @@ def metrics(
     isoasw_=False,
     jacc_=False,
     kbet_=False,
-    klc_=False,
     kldiv_=False,
     knndiv_=False,
     ksim_=False,
@@ -212,6 +214,8 @@ def metrics(
     ccentropy_=False,
     bnentropy_=False,
     cnentropy_=False,
+    bnentropyw_=False,
+    cnentropyw_=False,
     casw_=False,
     basw_=False,
     clustasw_=False,
@@ -314,17 +318,17 @@ def metrics(
         print("cell cycle effect...")
 
         # Small thing to use gene names, not Ensembl IDs
-        if 'gene_name' in adata.var.columns:
-            adata_copy = adata[:, ~adata.var['gene_name'].isna()].copy()
-            adata_copy.var = adata_copy.var.set_index('gene_name')
-            adata_copy.var_names = adata_copy.var_names.astype('object')
+        if "gene_name" in adata.var.columns:
+            adata_copy = adata[:, ~adata.var["gene_name"].isna()].copy()
+            adata_copy.var = adata_copy.var.set_index("gene_name")
+            adata_copy.var_names = adata_copy.var_names.astype("object")
             adata_copy.var_names_make_unique()
         else:
             adata_copy = adata
-        if 'gene_name' in adata_int.var.columns:
-            adata_int_copy = adata_int[:, ~adata_int.var['gene_name'].isna()].copy()
-            adata_int_copy.var = adata_int_copy.var.set_index('gene_name')
-            adata_int_copy.var_names = adata_int_copy.var_names.astype('object')
+        if "gene_name" in adata_int.var.columns:
+            adata_int_copy = adata_int[:, ~adata_int.var["gene_name"].isna()].copy()
+            adata_int_copy.var = adata_int_copy.var.set_index("gene_name")
+            adata_int_copy.var_names = adata_int_copy.var_names.astype("object")
             adata_int_copy.var_names_make_unique()
         else:
             adata_int_copy = adata_int
@@ -334,7 +338,7 @@ def metrics(
             batch_key=batch_key,
             embed=embed,
             agg_func=np.mean,
-            organism=adata.uns['species'],
+            organism=adata.uns["species"],
         )
     else:
         cc_score = np.nan
@@ -386,15 +390,15 @@ def metrics(
 
     if kbet_:
         print("kBET...")
-
+        kbet_kwargs = convert_values(
+            metric_kwargs.get("kbet_kwargs", {}), calc_kBET_across_labels
+        )
+        print(kbet_kwargs)
         _, _, kbet_score = calc_kBET_across_labels(
-            adata_int,
-            batch_key,
-            label_key,
-            embed
+            adata_int, batch_key, label_key, embed, **kbet_kwargs
         )
         _, _, kbet_no_label_score = calc_kBET(
-            adata_int, batch_key, embed
+            adata_int, batch_key, embed, **kbet_kwargs
         )
     else:
         kbet_score = np.nan
@@ -402,29 +406,33 @@ def metrics(
 
     if clisi_:
         print("cLISI score...")
+        clisi_kwargs = convert_values(
+            metric_kwargs.get("clisi_kwargs", {}), clisi_graph
+        )
         clisi_score = clisi_graph(
             adata_int,
             batch_key=batch_key,
             label_key=label_key,
-            type_=metric_kwargs.get("type_", "knn"),
-            subsample=metric_kwargs.get("subsample", 0.5) * 100,
+            type_="knn",
             scale=True,
-            n_cores=metric_kwargs.get("n_cores", 1),
             verbose=verbose,
+            **clisi_kwargs,
         )
     else:
         clisi_score = np.nan
 
     if ilisi_:
         print("iLISI score...")
+        ilisi_kwargs = convert_values(
+            metric_kwargs.get("ilisi_kwargs", {}), ilisi_graph
+        )
         ilisi_score = ilisi_graph(
             adata_int,
             batch_key=batch_key,
-            type_=metric_kwargs.get("type_", "knn"),
-            subsample=metric_kwargs.get("subsample", 0.5) * 100,
+            type_="knn",
             scale=True,
-            n_cores=metric_kwargs.get("n_cores", 1),
             verbose=verbose,
+            **ilisi_kwargs,
         )
     else:
         ilisi_score = np.nan
@@ -452,39 +460,45 @@ def metrics(
 
     if ldfdiff_:
         print("LDF difference score...")
+        ldfdiff_kwargs = convert_values(metric_kwargs.get('ldfdiff_kwargs', {}), ldf_diff)
         ldf_diff_score = ldf_diff(
             adata_pre=adata,
             adata_post=adata_int,
             batch_key=batch_key,
             embed_pre=embed_pre,
             embed_post=embed,
+            **ldfdiff_kwargs
         )
     else:
         ldf_diff_score = np.nan
 
     if csmc_:
         print("Cell-specific mixing score...")
+        csmc_kwargs = convert_values(metric_kwargs.get('csmc_kwargs', {}), cell_specific_mixing_score)
         cell_specific_mixing_score_result = cell_specific_mixing_score(
-            adata_int, batch_key=batch_key, embed=embed
+            adata_int, batch_key=batch_key, embed=embed, **csmc_kwargs
         )
     else:
         cell_specific_mixing_score_result = np.nan
 
     if align_:
-        print("Alignment score…")
-        alignment_score = alignment(adata_int, batch_key, embed)
+        print("Alignment score...")
+        align_kwargs = convert_values(metric_kwargs.get('align_kwargs', {}), alignment)
+        alignment_score = alignment(adata_int, batch_key, embed, **align_kwargs)
     else:
         alignment_score = np.nan
 
     if agree_:
         print("Agreement score...")
-        agreement_score = agreement(adata, adata_int, batch_key, label_key, embed)
+        agree_kwargs = convert_values(metric_kwargs.get('agree_kwargs', {}), agreement)
+        agreement_score = agreement(adata, adata_int, batch_key, label_key, embed, **agree_kwargs)
     else:
         agreement_score = np.nan
 
     if bknn_:
         print("Cross-batch k-NN score...")
-        crossbatch_knn_score = crossbatch_knn(adata_int, batch_key, label_key, embed)
+        bknn_kwargs = convert_values(metric_kwargs.get('bknn_kwargs', {}), crossbatch_knn)
+        crossbatch_knn_score = crossbatch_knn(adata_int, batch_key, label_key, embed, **bknn_kwargs)
     else:
         crossbatch_knn_score = np.nan
 
@@ -492,8 +506,8 @@ def metrics(
         print("Cross-batch logistic regression...")
         crossbatch_logistic_score = crossbatch_logistic(
             adata_int,
-            label_key,
             batch_key,
+            label_key,
             embed,
         )
     else:
@@ -501,7 +515,10 @@ def metrics(
 
     if fknn_:
         print("Cross-fold k-NN score...")
-        crossfold_knn_score = crossfold_knn(adata_int, label_key, embed)
+        fknn_kwargs = convert_values(
+            metric_kwargs.get("fknn_kwargs", {}), crossfold_knn
+        )
+        crossfold_knn_score = crossfold_knn(adata_int, label_key, embed, **fknn_kwargs)
     else:
         crossfold_knn_score = np.nan
 
@@ -521,14 +538,14 @@ def metrics(
 
     if bps_ or all_cluster_:
         print("Batch purity score...")
-        _, batch_purity = cluster_optimal_resolution(
+        _, batch_purity_score = cluster_optimal_resolution(
             adata_int,
             label_key=batch_key,
             cluster_key=cluster_key,
-            metric=batch_purity_score,
+            metric=batch_purity,
         )
     else:
-        batch_purity = np.nan
+        batch_purity_score = np.nan
 
     if bcentropy_ or all_cluster_:
         print("Batch Shannon entropy by cluster...")
@@ -551,23 +568,65 @@ def metrics(
 
     if bnentropy_ and cnentropy_:
         print("Shannon entropy nearest neighbor graph...")
+        entropy_kwargs = convert_values(
+            metric_kwargs.get("bnentropy_kwargs", {}), shannon_entropy_nn
+        )
         batch_shannon_entropy_nn_score, cell_shannon_entropy_nn_score = (
-            shannon_entropy_nn(adata_int, batch_key, label_key, embed=embed)
+            shannon_entropy_nn(
+                adata_int, batch_key, label_key, embed=embed, **entropy_kwargs
+            )
         )
     elif bnentropy_:
         print("Shannon entropy nearest neighbor graph...")
+        entropy_kwargs = convert_values(
+            metric_kwargs.get("bnentropy_kwargs", {}), shannon_entropy_nn
+        )
         batch_shannon_entropy_nn_score, _ = shannon_entropy_nn(
-            adata_int, batch_key, label_key, embed=embed
+            adata_int, batch_key, label_key, embed=embed, **entropy_kwargs
         )
         cell_shannon_entropy_nn_score = np.nan
     elif cnentropy_:
         print("Shannon entropy nearest neighbor graph...")
+        entropy_kwargs = convert_values(
+            metric_kwargs.get("cnentropy_kwargs", {}), shannon_entropy_nn
+        )
         _, cell_shannon_entropy_nn_score = shannon_entropy_nn(
-            adata_int, batch_key, label_key, embed=embed
+            adata_int, batch_key, label_key, embed=embed, **entropy_kwargs
         )
         batch_shannon_entropy_nn_score = np.nan
     else:
         batch_shannon_entropy_nn_score = cell_shannon_entropy_nn_score = np.nan
+
+    if bnentropyw_ and cnentropyw_:
+        print("Weighted Shannon entropy nearest neighbor graph...")
+        entropy_kwargs = convert_values(
+            metric_kwargs.get("bnentropyw_kwargs", {}), shannon_entropy_nn_weighted
+        )
+        bnentropyw_score, cnentropyw_score = (
+            shannon_entropy_nn_weighted(
+                adata_int, batch_key, label_key, embed=embed, **entropy_kwargs
+            )
+        )
+    elif bnentropyw_:
+        print("Weighted Shannon entropy nearest neighbor graph...")
+        entropy_kwargs = convert_values(
+            metric_kwargs.get("bnentropyw_kwargs", {}), shannon_entropy_nn_weighted
+        )
+        bnentropyw_score, _ = shannon_entropy_nn_weighted(
+            adata_int, batch_key, label_key, embed=embed, **entropy_kwargs
+        )
+        cnentropyw_score = np.nan
+    elif cnentropyw_:
+        print("Weighted Shannon entropy nearest neighbor graph...")
+        entropy_kwargs = convert_values(
+            metric_kwargs.get("cnentropy_kwargs", {}), shannon_entropy_nn_weighted
+        )
+        _, cnentropyw_score = shannon_entropy_nn_weighted(
+            adata_int, batch_key, label_key, embed=embed, **entropy_kwargs
+        )
+        bnentropyw_score = np.nan
+    else:
+        bnentropyw_score = cnentropyw_score = np.nan
 
     if arif_:
         print("ARI fixed...")
@@ -606,7 +665,7 @@ def metrics(
         bps_rf = bps_lr = np.nan
 
     if ch_ or all_cluster_:
-        print("Calinkski Harabasz score")
+        print("Calinkski Harabasz score...")
         _, ch_score = cluster_optimal_resolution(
             adata_int,
             label_key=label_key,
@@ -616,6 +675,12 @@ def metrics(
         )
     else:
         ch_score = np.nan
+    
+    if cch_:
+        print("Cell type Calinski Harabasz...")
+        cch_score = calinski_harabasz(adata_int, None, label_key, embed)
+    else:
+        cch_score = np.nan
 
     if clustacc_ or all_cluster_:
         print("Clustering accuracy...")
@@ -651,15 +716,16 @@ def metrics(
     else:
         compactness_score = np.nan
 
-    if corr_mse_:
+    if corrmse_:
         print("Corr-MSE...")
-        corr_mse_score = corr_mse(adata, adata_int, batch_key, embed, embed_pre)
+        corrmse_score = corr_mse(adata, adata_int, batch_key, embed, embed_pre)
     else:
-        corr_mse_score = np.nan
+        corrmse_score = np.nan
 
     if kldiv_:
         print("KL divergence...")
-        kl_div_score = kl_divergence(adata_int, batch_key, embed)
+        kldiv_kwargs = convert_values(metric_kwargs.get('kldiv_kwargs', {}), kl_divergence)
+        kl_div_score = kl_divergence(adata_int, batch_key, embed, **kldiv_kwargs)
     else:
         kl_div_score = np.nan
 
@@ -708,7 +774,8 @@ def metrics(
 
     if adgbd_:
         print("Average deviation from global batch distribution...")
-        adgbd_score = adgbd(adata_int, batch_key, embed=embed)
+        adgbd_kwargs = convert_values(metric_kwargs.get('adgbd_kwargs', {}), adgbd)
+        adgbd_score = adgbd(adata_int, batch_key, embed=embed, **adgbd_kwargs)
     else:
         adgbd_score = np.nan
 
@@ -737,7 +804,7 @@ def metrics(
     if cbe_ or all_cluster_:
         print("Cluster batch entropy...")
         _, cluster_batch_entropy_score = cluster_optimal_resolution(
-            adata_int, label_key, cluster_key, metric=cluster_batch_entropy
+            adata_int, batch_key, cluster_key, metric=cluster_batch_entropy
         )
     else:
         cluster_batch_entropy_score = np.nan
@@ -751,14 +818,22 @@ def metrics(
         completeness_score = np.nan
 
     if dbi_:
-        print("Davies-Bouldin...")
-        davies_bouldin_score = davies_bouldin(adata_int, label_key, embed)
+        print("Cell type Davies-Bouldin...")
+        cdbi_score = davies_bouldin(adata_int, None, label_key, embed)
     else:
-        davies_bouldin_score = np.nan
+        cdbi_score = np.nan
 
-    # if klc_:
-    #     print("KL Cluster...")
-    #     klc_score = kl_cluster(adata_int, batch_key, cluster_key)
+    if clustdbi_ or all_cluster_:
+        print("Cluster Davies-Bouldin...")
+        _, clust_dbi_score = cluster_optimal_resolution(
+            adata_int,
+            label_key,
+            cluster_key,
+            metric=davies_bouldin,
+            metric_kwargs={"embed": embed},
+        )
+    else:
+        clust_dbi_score = np.nan
 
     if knndiv_:
         print("KNN divergence...")
@@ -768,13 +843,15 @@ def metrics(
 
     if ksim_:
         print("kSIM...")
-        ksim_score = ksim(adata_int, label_key, embed)
+        ksim_kwargs = convert_values(metric_kwargs.get('ksim_kwargs', {}), ksim)
+        ksim_score = ksim(adata_int, label_key, embed, **ksim_kwargs)
     else:
         ksim_score = np.nan
 
     if mix_:
         print("Mixing score...")
-        mixing_score = mixing(adata_int, batch_key, embed)
+        mix_kwargs = convert_values(metric_kwargs.get('mix_kwargs', {}), mixing)
+        mixing_score = mixing(adata_int, batch_key, embed, **mix_kwargs)
     else:
         mixing_score = np.nan
 
@@ -792,25 +869,29 @@ def metrics(
 
     if nnmap_:
         print("Nearest neighbor mean average precision")
-        nnmap_score = nnmap(adata_int, label_key, embed)
+        nnmap_kwargs = convert_values(metric_kwargs.get('nnmap_kwargs', {}), nnmap)
+        nnmap_score = nnmap(adata_int, label_key, embed, **nnmap_kwargs)
     else:
         nnmap_score = np.nan
 
     if ocs_:
         print("Over correction...")
-        oc_score = over_correction(adata_int, label_key, embed=embed)
+        ocs_kwargs = convert_values(metric_kwargs.get('ocs_kwargs', {}), over_correction)
+        oc_score = over_correction(adata_int, label_key, embed=embed, **ocs_kwargs)
     else:
         oc_score = np.nan
 
     if pptpc_:
         print("Positive of positive and true positive cells...")
-        pptpc_score = pptpc(adata_int, batch_key, label_key, embed=embed)
+        pptpc_kwargs = convert_values(metric_kwargs.get('pptpc_kwargs', {}), pptpc)
+        pptpc_score = pptpc(adata_int, batch_key, label_key, embed=embed, **pptpc_kwargs)
     else:
         pptpc_score = np.nan
-    
+
     if pstdb_:
         print("Proportion of same cell type but different batch...")
-        pstdb_score = pstdb(adata_int, batch_key, label_key, embed)
+        pstdb_kwargs = convert_values(metric_kwargs.get('pstdb_kwargs', {}), pstdb)
+        pstdb_score = pstdb(adata_int, batch_key, label_key, embed, **pstdb_kwargs)
     else:
         pstdb_score = np.nan
 
@@ -824,7 +905,8 @@ def metrics(
 
     if rknn_:
         print("Retained KNN...")
-        retained_knn_score = retained_knn(adata, adata_int, batch_key, embed)
+        rknn_kwargs = convert_values(metric_kwargs.get('rknn_kwargs', {}), retained_knn)
+        retained_knn_score = retained_knn(adata, adata_int, batch_key, embed, **rknn_kwargs)
     else:
         retained_knn_score = np.nan
 
@@ -875,26 +957,28 @@ def metrics(
         "BARI": bARI_score,
         "PROBE": (bps_rf + bps_lr) / 2,
         "BATCHARI": batch_ari_score,
-        "BPS": batch_purity,
+        "BPS": batch_purity_score,
         "BCENTROPY": batch_shannon_entropy_score,
         "BRAS": bras_score,
         "CH": ch_score,
         "CCC": cc_score,
+        "CCH": cch_score,
         "CSMC": cell_specific_mixing_score_result,
         "CCENTROPY": celltype_shannon_entropy_score,
         "CLISI": clisi_score,
         "CILISI": cilisi_score,
         "CLUSTASW": silhouette_cluster_score,
         "CLUSTACC": clustacc_score,
+        "CLUSTDBI": clust_dbi_score,
         "CBE": cluster_batch_entropy_score,
         "COMPACT": compactness_score,
         "COMP": completeness_score,
-        "CORRMSE": corr_mse_score,
+        "CORRMSE": corrmse_score,
         "BKNN": crossbatch_knn_score,
         "BLOGREG": crossbatch_logistic_score,
         "FKNN": crossfold_knn_score,
         "FLOGREG": crossfold_logistic_score,
-        "DBI": davies_bouldin_score,
+        "DBI": cdbi_score,
         "F1": f1sm,
         "FMI": fm_score,
         "GC": graph_conn_score,
@@ -928,13 +1012,40 @@ def metrics(
         "SEPARATION": separation_score,
         "BNENTROPY": batch_shannon_entropy_nn_score,
         "CNENTROPY": cell_shannon_entropy_nn_score,
+        "BNENTROPYW": bnentropyw_score,
+        "CNENTROPYW": cnentropyw_score,
         "CASW": asw_label,
         "TRAJ": trajectory_score,
         "VM": v_score,
         "VI": vi_score,
-        # "scGraph_corr_pca": scgraph_corr_pca,
-        # "scGraph_corr_weighted": scgraph_corr_weighted,
-        # "scGraph_rank_pca": scgraph_rank_pca,
     }
 
     return pd.DataFrame.from_dict(results, orient="index")
+
+
+def convert_values(kwargs, function):
+    sig = inspect.signature(function)
+    parameters = sig.parameters
+
+    converted_kwargs = {}
+    for key, value in kwargs.items():
+        if key in parameters:
+            target_type = parameters[key].annotation
+
+            # Only convert if a specific type (like int, float, bool) is hinted
+            if isinstance(target_type, type) and isinstance(value, str):
+                try:
+                    # Special handling for booleans since bool("False") is True
+                    if target_type is bool:
+                        converted_kwargs[key] = value.lower() == 'true'
+                    else:
+                        converted_kwargs[key] = target_type(value)
+                except ValueError:
+                    # Fallback to original value if casting fails
+                    converted_kwargs[key] = value
+            else:
+                converted_kwargs[key] = value
+        else:
+            # If the key isn't in the signature (e.g. passed to **kwargs inside), keep as is
+            converted_kwargs[key] = value
+    return converted_kwargs

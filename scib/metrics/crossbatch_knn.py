@@ -5,7 +5,7 @@ import numpy as np
 from ..utils import check_adata, check_batch
 
 
-def crossbatch_knn(adata, batch_key, label_key, embed, n_neighbors=21):
+def crossbatch_knn(adata, batch_key, label_key, embed, n_neighbors: int = 21):
     """
     Cross-batch k-NN classifier:
     Train classifier on all but one batch, test on the held out one.

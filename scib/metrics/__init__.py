@@ -9,7 +9,6 @@ from .bAMI import bAMI
 from .bARI import bARI
 from .batch_ari import batch_ari
 from .batch_probing_score import batch_probing_score
-from .batch_purity_score import batch_purity_score
 from .bras import bras
 from .bv_measure import bv_measure
 from .calinski_harabasz import calinski_harabasz
@@ -45,21 +44,21 @@ from .matthews_corrcoef import matthews_corrcoef
 from .metrics import metrics, metrics_all, metrics_fast, metrics_slim
 from .mixing import mixing
 from .modularity import modularity
-from .morans_i import morans_i
+from .morans_i import morans_i, sub_variable_genes
 from .nmi import nmi, nmi_fixed
 from .nnmap import nnmap
 from .over_correction import over_correction
 from .pcr import pcr_comparison
 from .pptpc import pptpc
 from .pstdb import pstdb
-from .purity import purity
+from .purity import purity, batch_purity
 from .rbet import rbet
 from .retained_knn import retained_knn
 from .sc_graph import scgraph
 from .scaled_variance import scaled_variance
 from .separation import separation
 from .shannon_entropy_cluster import batch_shannon_entropy, celltype_shannon_entropy
-from .shannon_entropy_nn import shannon_entropy_nn
+from .shannon_entropy_nn import shannon_entropy_nn, shannon_entropy_nn_weighted
 from .silhouette import silhouette, silhouette_batch, silhouette_cluster
 from .trajectory import trajectory_conservation
 from .v_measure import v_measure
@@ -79,7 +78,7 @@ __all__ = [
     "bARI",
     "batch_ari",
     "batch_probing_score",
-    "batch_purity_score",
+    "batch_purity",
     "bras",
     "bv_measure",
     "calinski_harabasz",
@@ -143,9 +142,11 @@ __all__ = [
     "batch_shannon_entropy",
     "celltype_shannon_entropy",
     "shannon_entropy_nn",
+    "shannon_entropy_nn_weighted",
     "silhouette",
     "silhouette_batch",
     "silhouette_cluster",
+    "sub_variable_genes",
     "trajectory_conservation",
     "v_measure",
     "variation_of_information",

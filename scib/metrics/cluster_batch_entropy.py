@@ -3,7 +3,7 @@ from scipy.special import rel_entr
 
 def cluster_batch_entropy(adata, label_key, cluster_key):
     """
-    Compute Cluster Batch Entropy (BCENTROPY) score.
+    Compute Cluster Batch Entropy (CBE) score.
 
     Parameters
     ----------
@@ -16,17 +16,15 @@ def cluster_batch_entropy(adata, label_key, cluster_key):
 
     Returns
     -------
-    cbe_score : float
+    cbe : float
         Cluster batch entropy score (between 0 and 1).
     """
     df = adata.obs[[cluster_key, label_key]].copy()
 
-    # Total number of cells and batches
     n_total = len(df)
     batch_labels = df[label_key].unique()
     n_batches = len(batch_labels)
 
-    # Compute global batch distribution P
     p_global = df[label_key].value_counts(normalize=True).reindex(batch_labels, fill_value=0).values
 
     kl_sum = 0

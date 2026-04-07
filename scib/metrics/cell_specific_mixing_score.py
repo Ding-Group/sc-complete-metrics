@@ -9,16 +9,13 @@ def cell_specific_mixing_score(
     adata,
     batch_key,
     embed,
-    k=70,
+    k: int = 70,
     n_dim=None,
-    k_min=None,          # maps to R NA
-    batch_min=None,      # maps to R NULL
     cell_min=10,
     smooth=True,
     unbalanced=False,
     res_name=None,
     return_per_cell=False,
-    r_run_pca_when_embed_missing=False,
 ):
     """Cell-specific mixing score (CMS) wrapper around CellMixS::cms via rpy2.
 
@@ -45,10 +42,6 @@ def cell_specific_mixing_score(
         Key in ``adata.obsm`` for the embedding to use (default ``"X_pca"``).
     n_dim : int, optional
         Number of embedding dimensions to use (default all).
-    k_min : int or None, optional
-        Minimum neighbors for density-adaptive neighborhood. ``None`` → R ``NA``.
-    batch_min : int or None, optional
-        Minimum cells per batch in the neighborhood. ``None`` → R ``NULL``.
     cell_min : int, optional
         Minimum cells from each group for the AD test (default 10).
     smooth : bool, optional
@@ -59,18 +52,6 @@ def cell_specific_mixing_score(
         Suffix for result column (``cms`` or ``cms.<res_name>``).
     return_per_cell : bool, optional
         If True return the per-cell vector, else return the NaN-mean.
-    r_run_pca_when_embed_missing : bool, optional
-        Let R compute PCA if embedding is absent.
-
-    Returns
-    -------
-    np.ndarray or float
-        Per-cell CMS vector (if ``return_per_cell=True``) or mean CMS.
-
-    Raises
-    ------
-    RuntimeError
-        If rpy2/R/CellMixS are unavailable or the R call fails.
     """
     check_adata(adata)
 
@@ -82,7 +63,7 @@ def cell_specific_mixing_score(
     try:
         import rpy2.robjects as ro
         from rpy2.robjects.packages import importr
-        from rpy2.robjects import numpy2ri, NA_Real
+        from rpy2.robjects import numpy2ri
         from rpy2.robjects import conversion, default_converter
     except Exception as e:
         raise RuntimeError(
@@ -106,8 +87,6 @@ def cell_specific_mixing_score(
             r.assign("smooth", bool(smooth))
             r.assign("unbalanced", bool(unbalanced))
             r.assign("res_name", ro.NULL if res_name is None else str(res_name))
-            r.assign("k_min", NA_Real if k_min is None else float(k_min))          # None → NA
-            r.assign("batch_min", ro.NULL if batch_min is None else float(batch_min))  # None → NULL
             r('bp <- BiocParallel::SerialParam()')
 
             del adata.uns
@@ -115,8 +94,7 @@ def cell_specific_mixing_score(
 
             r('sce <- CellMixS::cms(sce, k = k, group = group_key, '
             'dim_red = dim_red, n_dim = n_dim, cell_min = cell_min, '
-            'k_min = k_min, batch_min = batch_min, smooth = smooth, '
-            'unbalanced = unbalanced, res_name = res_name, BPPARAM = bp)')
+            'smooth = smooth, unbalanced = unbalanced, res_name = res_name, BPPARAM = bp)')
 
             result_col = "cms" if res_name is None else f"cms.{res_name}"
             r.assign("result_col", result_col)

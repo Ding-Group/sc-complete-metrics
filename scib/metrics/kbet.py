@@ -271,6 +271,7 @@ def calc_kBET_across_labels(
     batch_key: str,
     label_key: str,
     embed: str = "X_integration",
+    k: int = 70,
     alpha: float = 0.05,
     n_jobs: int = -1,
     temp_folder: str = None,
@@ -303,13 +304,13 @@ def calc_kBET_across_labels(
         quarter_mean = np.floor(
             np.mean(adata_sub.obs[batch_key].value_counts()) / 4
         ).astype("int")
-        k0 = np.min([70, np.max([10, quarter_mean])])
+        k0 = np.min([k, np.max([10, quarter_mean])])
         # check k0 for reasonability
         if k0 * adata_sub.n_obs >= size_max:
             k0 = np.floor(size_max / adata_sub.n_obs).astype("int")
 
         stat_mean, pvalue_mean, accept_rate = calc_kBET(
-            adata_sub, batch_key, embed, K=k0, alpha=alpha, n_jobs=n_jobs
+            adata_sub, batch_key, embed, k=k0, alpha=alpha, n_jobs=n_jobs
         )
         kBET_scores["cluster"].append(clus)
         kBET_scores["stat_mean"].append(stat_mean)
@@ -324,7 +325,7 @@ def calc_kBET(
     adata: ad.AnnData,
     batch_key: str,
     embed: str = "X_integration",
-    K: int = 25,
+    k: int = 25,
     alpha: float = 0.05,
     n_jobs: int = -1,
     temp_folder: str = None,
@@ -392,7 +393,7 @@ def calc_kBET(
     attr_values = adata.obs[batch_key].cat.rename_categories(range(nbatch)).values
 
     # Explicitly want to include itself as one of the nearest neighbors
-    nearestNeighbors = sklearn.neighbors.NearestNeighbors(n_neighbors=K, n_jobs=n_jobs)
+    nearestNeighbors = sklearn.neighbors.NearestNeighbors(n_neighbors=k, n_jobs=n_jobs)
     nearestNeighbors.fit(adata.obsm[embed])
     knn_indices = nearestNeighbors.kneighbors(adata.obsm[embed], return_distance=False)
 
@@ -413,7 +414,7 @@ def calc_kBET(
                     knn_indices[starts[i] : starts[i + 1], :],
                     attr_values,
                     ideal_dist,
-                    K,
+                    k,
                 )
                 for i in range(n_jobs)
             )

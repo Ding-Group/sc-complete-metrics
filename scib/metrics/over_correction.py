@@ -32,7 +32,7 @@ def over_correction(
     adata,
     label_key,
     embed,
-    n_neighbors=50,
+    n_neighbors: int = 50,
 ) -> float:
     """Over-correction
 

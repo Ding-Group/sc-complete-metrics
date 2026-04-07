@@ -4,7 +4,7 @@ from sklearn.neighbors import NearestNeighbors
 
 
 def retained_knn(
-    adata_pre, adata_post, batch_key, embed_post, n_neighbors=50
+    adata_pre, adata_post, batch_key, embed_post, n_neighbors: int = 50
 ):
     """Retained nearest neighbors
 
