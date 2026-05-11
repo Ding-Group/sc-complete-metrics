@@ -31,7 +31,7 @@ from .fowlkes_mallows import fowlkes_mallows
 from .graph_connectivity import graph_connectivity
 from .highly_variable_genes import hvg_overlap
 from .homogeneity import homogeneity
-from .isolated_labels import isolated_labels, isolated_labels_asw, isolated_labels_f1
+from .isolated_labels import isolated_labels, isolated_labels_asw, isolated_labels_f1, isolated_labels_lisi
 from .jaccard import jaccard_index
 from .kbet import kBET, calc_kBET, calc_kBET_across_labels
 from .kl_cluster import kl_cluster
@@ -108,6 +108,7 @@ __all__ = [
     "isolated_labels",
     "isolated_labels_asw",
     "isolated_labels_f1",
+    "isolated_labels_lisi",
     "jaccard_index",
     "kBET",
     "kl_cluster",

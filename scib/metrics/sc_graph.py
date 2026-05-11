@@ -1,3 +1,5 @@
+from typing import Literal
+
 import numpy as np
 import pandas as pd
 import scanpy as sc
@@ -9,8 +11,26 @@ from tqdm import tqdm
 from ..utils import check_adata, check_batch
 
 
+def fisher_poisson(m1, m2):
+    return np.sum( 2 * np.abs(np.sqrt(m1) - np.sqrt(m2)) )
+
+
+def fisher_multinomial(m1, m2):
+    v = np.sum(np.sqrt(m1 * m2))
+    v = np.clip(v, -1, 1)
+    return 2 * np.arccos(v)
+
+
 def scgraph(
-    adata, batch_key, label_key, embed, trim_rate=0.05, thres_batch=100, thres_celltype=10
+    adata,
+    batch_key,
+    label_key,
+    embed,
+    method: Literal['default', 'fisher_poisson', 'fisher_multinomial'] = 'default',
+    trim_rate: float = 0.05,
+    thres_batch: int = 100,
+    thres_celltype: int = 10,
+    pca_comps: int = 10
 ):
     """scGraph
 
@@ -25,12 +45,14 @@ def scgraph(
         adata,
         batch_key,
         label_key,
+        method=method,
         trim_rate=trim_rate,
         thres_batch=thres_batch,
         thres_celltype=thres_celltype,
+        pca_comps=pca_comps
     )
     res_df = scGraph_.main([embed])
-    return (res_df['Rank-PCA'] + res_df['Corr-PCA'] + res_df['Corr-Weighted']) / 3, res_df['Rank-PCA'], res_df['Corr-PCA'], res_df['Corr-Weighted']
+    return ((res_df['Rank-PCA'] + res_df['Corr-PCA'] + res_df['Corr-Weighted']) / 3).iloc[0], res_df['Rank-PCA'], res_df['Corr-PCA'], res_df['Corr-Weighted']
 
 
 # Copied from https://github.com/Genentech/Islander/blob/main/src/scGraph.py and modified to directly take in AnnData object.
@@ -40,16 +62,24 @@ class scGraph:
         adata,
         batch_key,
         label_key,
+        method: Literal['default', 'fisher_poisson', 'fisher_multinomial'] = 'default',
         trim_rate=0.05,
         thres_batch=100,
         thres_celltype=10,
+        pca_comps: int = 10
     ):
         self.trim_rate = trim_rate
         self.thres_batch = thres_batch
         self.thres_celltype = thres_celltype
         self.ignore_celltype = []  # List of cell types to be ignored
-        self._collect_pca_ = dict()
-        self.concensus_df_pca = None
+        self.method = method
+        if method == 'fisher_multinomial':
+            self.metric = fisher_multinomial
+        elif method == 'fisher_poisson':
+            self.metric = fisher_poisson
+        self._collect = dict()
+        self.consensus_df = None
+        self.pca_comps = pca_comps
 
         self.adata = adata
         self.batch_key = batch_key
@@ -67,7 +97,7 @@ class scGraph:
                 self.ignore_celltype.append(celltype)
 
     def process_batches(self):
-        print("Processing batches, calcualte centroids and pairwise distances")
+        print("Processing batches, calculate centroids and pairwise distances")
         for BATCH_ in tqdm(self.adata.obs[self.batch_key].unique()):
             adata_batch = self.adata[self.adata.obs[self.batch_key] == BATCH_].copy()
 
@@ -80,7 +110,7 @@ class scGraph:
             # sc.pp.log1p(adata_batch)
 
             sc.pp.highly_variable_genes(adata_batch, n_top_genes=1000)
-            sc.pp.pca(adata_batch, n_comps=10, mask_var=adata_batch.var.highly_variable)
+            sc.pp.pca(adata_batch, n_comps=self.pca_comps, mask_var=adata_batch.var.highly_variable)
 
             # NOTE: make sure
             centroids_pca = calculate_trimmed_means(
@@ -90,19 +120,53 @@ class scGraph:
                 ignore_=self.ignore_celltype,
             )
             pca_pairdist = compute_classwise_distances(centroids_pca)
-            self._collect_pca_[BATCH_] = pca_pairdist.div(
+            self._collect[BATCH_] = pca_pairdist.div(
                 pca_pairdist.max(axis=0), axis=1
             )
 
+    def process_batches_fisher(self):
+        print("Processing batches using Fisher information metric and pairwise distances")
+        
+        # Calculate highly variable genes if not already present
+        if 'highly_variable' not in self.adata.var.columns:
+            sc.pp.highly_variable_genes(self.adata)
+        for BATCH_ in tqdm(self.adata.obs[self.batch_key].unique()):
+            adata_batch = self.adata[self.adata.obs[self.batch_key] == BATCH_].copy()
+
+            # Subset to just the highly variable genes
+            adata_batch = adata_batch[:, adata_batch.var['highly_variable']]
+
+            if len(adata_batch) < self.thres_batch:
+                print(f"Skipped batch {BATCH_}, due to < {self.thres_batch} cells")
+                continue
+
+            if self.metric is fisher_poisson:
+                means = compute_poisson_means(
+                    adata_batch.layers['counts'],
+                    adata_batch.obs[self.label_key],
+                    ignore_=self.ignore_celltype
+                )
+            else:
+                means = compute_multinomial_means(
+                    adata_batch.layers['counts'],
+                    adata_batch.obs[self.label_key],
+                    ignore_=self.ignore_celltype
+                )
+
+            pairdist = compute_classwise_fisher(means, self.metric)
+            self._collect[BATCH_] = pairdist.div(
+                pairdist.max(axis=0), axis=1
+            )
+
     def calculate_consensus(self):
-        df_combined = pd.concat(self._collect_pca_.values(), axis=0, sort=False)
-        self.concensus_df_pca = df_combined.groupby(df_combined.index).mean()
-        self.concensus_df_pca = self.concensus_df_pca.loc[
-            self.concensus_df_pca.columns, :
-        ]
-        self.concensus_df_pca = self.concensus_df_pca / self.concensus_df_pca.max(
-            axis=0
-        )
+        df_combined = pd.concat(self._collect.values(), axis=0, sort=False)
+        self.consensus_df = df_combined.groupby(df_combined.index).mean()
+        self.consensus_df = self.consensus_df.loc[self.consensus_df.columns, :]
+        self.consensus_df = self.consensus_df / self.consensus_df.max(axis=0)
+
+        # In case of numerical instability, set the diagonal of the DF to 0
+        for i in range(len(self.consensus_df)):
+            self.consensus_df.iloc[i, i] = 0
 
     @staticmethod
     def rank_diff(df1, df2):
@@ -156,7 +220,7 @@ class scGraph:
         weighted_pearson_corr = covariance / np.sqrt(variance_x * variance_y)
         return weighted_pearson_corr
 
-    def adata_concensus(self, obsm):
+    def adata_consensus(self, obsm):
         _centroid = calculate_trimmed_means(
             np.array(self.adata.obsm[obsm]),
             self.adata.obs[self.label_key],
@@ -168,26 +232,29 @@ class scGraph:
 
     def main(self, _obsm_list=None):
         self.preprocess()
-        self.process_batches()
+        if self.method == 'default':
+            self.process_batches()
+        else:
+            self.process_batches_fisher()
         self.calculate_consensus()
 
         res_df = pd.DataFrame(columns=["Rank-PCA", "Corr-PCA", "Corr-Weighted"])
         if _obsm_list is None:
             _obsm_list = sorted(list(self.adata.obsm))
 
-        # self.concensus_df_pca.to_csv("concensus_df_pca_%s.csv"%self.trim_rate)
+        # self.consensus_df.to_csv("consensus_df_%s.csv"%self.trim_rate)
         # exit()
         for _obsm in _obsm_list:
-            adata_df = self.adata_concensus(_obsm)
+            adata_df = self.adata_consensus(_obsm)
             _row_df = pd.DataFrame(
                 {
-                    "Rank-PCA": self.rank_diff(adata_df, self.concensus_df_pca)
+                    "Rank-PCA": self.rank_diff(adata_df, self.consensus_df)
                     .mean()
                     .values,
-                    "Corr-PCA": self.corr_diff(adata_df, self.concensus_df_pca)
+                    "Corr-PCA": self.corr_diff(adata_df, self.consensus_df)
                     .mean()
                     .values,
-                    "Corr-Weighted": self.corrw_diff(adata_df, self.concensus_df_pca)
+                    "Corr-Weighted": self.corrw_diff(adata_df, self.consensus_df)
                     .mean()
                     .values,
                 },
@@ -217,4 +284,37 @@ def compute_classwise_distances(centroids):
     distances = cdist(centroid_vectors, centroid_vectors, "euclidean")
     return pd.DataFrame(
         distances, columns=sorted(centroids.keys()), index=sorted(centroids.keys())
+    )
+
+
+def compute_poisson_means(X, labels, ignore_=[]):
+    means = dict()
+    if isinstance(X, csr_matrix):
+        X = X.toarray()
+    for label in labels.unique():
+        if label in ignore_:
+            continue
+        means[label] = X[labels == label].mean(0)
+    return means
+
+
+def compute_multinomial_means(X, labels, ignore_=[]):
+    means = dict()
+    if isinstance(X, csr_matrix):
+        X = X.toarray()
+    for label in labels.unique():
+        if label in ignore_:
+            continue
+
+        m = X[labels == label].sum(0)
+        prop = m / np.sum(m)
+        means[label] = prop
+    return means
+
+
+def compute_classwise_fisher(means, metric):
+    mean_vectors = np.array([means[key] for key in sorted(means.keys())])
+    distances = cdist(mean_vectors, mean_vectors, metric)
+    return pd.DataFrame(
+        distances, columns=sorted(means.keys()), index=sorted(means.keys())
     )

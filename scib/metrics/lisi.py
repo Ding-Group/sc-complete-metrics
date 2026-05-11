@@ -47,6 +47,7 @@ def ilisi_graph(
     scale=True,
     n_cores=1,
     verbose=False,
+    return_all: bool = False,
 ):
     """Integration LISI (iLISI) score
 
@@ -69,6 +70,7 @@ def ilisi_graph(
         to which lisi scoring should be subsampled
     :param scale: scale output values between 0 and 1 (True/False)
     :param n_cores: number of cores (i.e. CPUs or CPU cores to use for multiprocessing)
+    :param return_all: Whether to return all unscaled scores per cell
     :return: Median of iLISI scores per batch labels
 
     This function can be applied to all integration output types and recomputes the kNN graph for feature and embedding
@@ -111,6 +113,8 @@ def ilisi_graph(
         nbatches = adata.obs[batch_key].nunique()
         ilisi = (ilisi - 1) / (nbatches - 1)
 
+    if return_all:
+        return ilisi, ilisi_score
     return ilisi
 
 
@@ -125,6 +129,7 @@ def clisi_graph(
     scale=True,
     n_cores=1,
     verbose=False,
+    return_all: bool = False
 ):
     """Cell-type LISI (cLISI) score
 
@@ -147,7 +152,8 @@ def clisi_graph(
     :param subsample: Percentage of observations (integer between 0 and 100)
         to which lisi scoring should be subsampled
     :param scale: scale output values between 0 and 1 (True/False)
-    :param n_cores: number of cores (i.e. CPUs or CPU cores to use for multiprocessing)
+    :param n_cores: number of cores (i.e. CPUs or CPU cores to use for multiprocessing)]
+    :param return_all: Whether to return all unscaled scores per cell
     :return: Median of cLISI scores per cell type labels
 
     This function can be applied to all integration output types and recomputes the kNN graph for feature and embedding
@@ -193,6 +199,8 @@ def clisi_graph(
         nlabs = adata.obs[label_key].nunique()
         clisi = (nlabs - clisi) / (nlabs - 1)
 
+    if return_all:
+        return clisi, scores
     return clisi
 
 

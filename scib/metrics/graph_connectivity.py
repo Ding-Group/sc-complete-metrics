@@ -3,7 +3,7 @@ import pandas as pd
 from scipy.sparse.csgraph import connected_components
 
 
-def graph_connectivity(adata, label_key):
+def graph_connectivity(adata, label_key, obsp_key: str = "connectivities"):
     """Graph Connectivity
 
     Quantify the connectivity of the subgraph per cell type label.
@@ -51,7 +51,7 @@ def graph_connectivity(adata, label_key):
     for label in adata.obs[label_key].cat.categories:
         adata_sub = adata[adata.obs[label_key].isin([label])]
         _, labels = connected_components(
-            adata_sub.obsp["connectivities"], connection="strong"
+            adata_sub.obsp[obsp_key], connection="strong"
         )
         tab = pd.value_counts(labels)
         clust_res.append(tab.max() / sum(tab))

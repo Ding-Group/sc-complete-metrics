@@ -1,5 +1,6 @@
 import numpy as np
 import scanpy as sc
+import pandas as pd
 
 from ..utils import check_adata, check_batch
 from .lisi import ilisi_graph
@@ -10,11 +11,12 @@ def cilisi(
     batch_key,
     label_key,
     embed=None,
-    k0=90,
+    k0: int = 90,
     subsample=None,
     scale=True,
     n_cores=1,
     verbose=False,
+    return_all: bool = False
 ):
     """
     Average iLISI per cell type
@@ -26,6 +28,9 @@ def cilisi(
     values = []
     for label in np.unique(adata.obs[label_key]):
         subset = adata[adata.obs[label_key] == label].copy()
+        if len(np.unique(subset.obs[batch_key])) == 1:
+            print(f"Skipping {label}, only one batch")
+            continue
         val = ilisi_graph(
             subset,
             batch_key,
@@ -39,4 +44,6 @@ def cilisi(
         )
         values.append(val)
 
+    if return_all:
+        return pd.DataFrame(values, index=np.unique(adata.obs[label_key]), columns=['CILISI'])
     return np.mean(values)

@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 
 from ..utils import check_adata, check_batch
 
-
+# SOURCE: https://github.com/codicef/BPS/blob/main/src/bps.py
 def batch_probing_score(
     adata,
     batch_key,

@@ -38,7 +38,7 @@ from .fowlkes_mallows import fowlkes_mallows
 from .graph_connectivity import graph_connectivity
 from .highly_variable_genes import hvg_overlap
 from .homogeneity import homogeneity
-from .isolated_labels import isolated_labels
+from .isolated_labels import isolated_labels, isolated_labels_lisi
 from .jaccard import jaccard_index
 from .kbet import kBET, calc_kBET, calc_kBET_across_labels
 from .kl_cluster import kl_cluster
@@ -186,6 +186,7 @@ def metrics(
     homo_=False,
     isof1_=False,
     isoasw_=False,
+    isolisi_=False,
     jacc_=False,
     kbet_=False,
     kldiv_=False,
@@ -208,6 +209,8 @@ def metrics(
     purity_=False,
     rknn_=False,
     scgraph_=False,
+    scgraphp_=False,
+    scgraphm_=False,
     sv_=False,
     separation_=False,
     bcentropy_=False,
@@ -371,14 +374,28 @@ def metrics(
     else:
         il_score_asw = np.nan
 
+    if isolisi_:
+        print("Isolated labels CLISI...")
+        il_score_lisi = isolated_labels_lisi(
+            adata_int,
+            label_key=label_key,
+            batch_key=batch_key,
+            embed=embed
+        )
+    else:
+        il_score_lisi = np.nan
+
     if gc_:
         print("Graph connectivity...")
-        graph_conn_score = graph_connectivity(adata_int, label_key=label_key)
+        gc_kwargs = convert_values(
+            metric_kwargs.get("gc_kwargs", {}), graph_connectivity
+        )
+        graph_conn_score = graph_connectivity(adata_int, label_key=label_key, **gc_kwargs)
     else:
         graph_conn_score = np.nan
 
     if scgraph_:
-        print("scGraph connectivity classifier...")
+        print("scGraph...")
         scgraph_avg, scgraph_rank_pca, scgraph_corr_pca, scgraph_corr_weighted = (
             scgraph(adata_int, batch_key=batch_key, label_key=label_key, embed=embed)
         )
@@ -388,12 +405,35 @@ def metrics(
             np.nan
         )
 
+    if scgraphp_:
+        print("scGraph with Fisher Poisson distance...")
+        scgraphp_avg, _, _, _ = scgraph(
+            adata_int,
+            batch_key=batch_key,
+            label_key=label_key,
+            embed=embed,
+            method='fisher_poisson'
+        )
+    else:
+        scgraphp_avg = np.nan
+
+    if scgraphm_:
+        print("scGraph with Fisher multinomial distance...")
+        scgraphm_avg, _, _, _ = scgraph(
+            adata_int,
+            batch_key=batch_key,
+            label_key=label_key,
+            embed=embed,
+            method='fisher_multinomial'
+        )
+    else:
+        scgraphm_avg = np.nan
+
     if kbet_:
         print("kBET...")
         kbet_kwargs = convert_values(
             metric_kwargs.get("kbet_kwargs", {}), calc_kBET_across_labels
         )
-        print(kbet_kwargs)
         _, _, kbet_score = calc_kBET_across_labels(
             adata_int, batch_key, label_key, embed, **kbet_kwargs
         )
@@ -956,6 +996,9 @@ def metrics(
         "BVM": bv_measure_score,
         "BARI": bARI_score,
         "PROBE": (bps_rf + bps_lr) / 2,
+        "PROBERF": bps_rf,
+        "PROBELR": bps_lr,
+        "PROBEMIN": np.min([bps_rf, bps_lr]),
         "BATCHARI": batch_ari_score,
         "BPS": batch_purity_score,
         "BCENTROPY": batch_shannon_entropy_score,
@@ -987,6 +1030,7 @@ def metrics(
         "ILISI": ilisi_score,
         "ISOF1": il_score_f1,
         "ISOASW": il_score_asw,
+        "ISOLISI": il_score_lisi,
         "JACC": jaccard_score,
         "KBET": kbet_score,
         "KBETALL": kbet_no_label_score,
@@ -1009,6 +1053,8 @@ def metrics(
         "RKNN": retained_knn_score,
         "SV": sv_score,
         "SCGRAPH": scgraph_avg,
+        "SCGRAPHP": scgraphp_avg,
+        "SCGRAPHM": scgraphm_avg,
         "SEPARATION": separation_score,
         "BNENTROPY": batch_shannon_entropy_nn_score,
         "CNENTROPY": cell_shannon_entropy_nn_score,

@@ -1,9 +1,11 @@
 import warnings
 
+import numpy as np
 import pandas as pd
 from sklearn.metrics import f1_score, silhouette_samples
 
 from .clustering import cluster_optimal_resolution
+from .lisi import clisi_graph
 from ..utils import EMB_KEY
 
 def isolated_labels_f1(
@@ -139,6 +141,39 @@ def isolated_labels_asw(
         scale=scale,
         verbose=verbose,
     )
+
+
+def isolated_labels_lisi(
+    adata,
+    label_key,
+    batch_key,
+    embed,
+    iso_threshold=None,
+    verbose=True,
+):
+    """
+    Compute the isolated labels LISI score.
+    """
+    # Determine isolated labels
+    isolated_labels = get_isolated_labels(
+        adata, label_key, batch_key, iso_threshold, verbose
+    )
+    if verbose:
+        print(f"isolated labels: {isolated_labels}")
+
+    # Compute the CLISI and get back the scores per cell
+    _, scores = clisi_graph(adata, label_key, type_="knn", use_rep=embed, return_all=True)
+
+    # Compute CLISI for each individual cell type
+    n_labels = adata.obs[label_key].nunique()
+    iso_scores = []
+    for label in isolated_labels:
+        mask = adata.obs[label_key] == label
+        s = np.nanmedian(scores[mask])
+        s = (n_labels - s) / (n_labels - 1)
+        iso_scores.append(s)
+    
+    return np.mean(iso_scores)
 
 
 def isolated_labels(
@@ -280,7 +315,7 @@ def score_isolated_label(
         )
         score = max_f1(adata, label_key, cluster_key, isolated_label, argmax=False)
     else:
-        # AWS score between isolated label vs rest
+        # ASW score between isolated label vs rest
         if "silhouette_temp" not in adata.obs:
             adata.obs["silhouette_temp"] = silhouette_samples(
                 adata.obsm[embed], adata.obs[label_key]

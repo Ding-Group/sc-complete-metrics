@@ -275,6 +275,7 @@ def calc_kBET_across_labels(
     alpha: float = 0.05,
     n_jobs: int = -1,
     temp_folder: str = None,
+    return_means: bool = True
 ) -> Tuple[float]:
     """
     Calculate the kBET metric using the Pegasus way, except averaged across labels.
@@ -286,7 +287,8 @@ def calc_kBET_across_labels(
     )
     labels = counts.query(f"{label_key}>=10 and {batch_key} > 1").index
     skipped = counts.index.difference(labels)
-    print(f"{len(skipped)} labels consist of a single batch or is too small. Skip.")
+    if len(skipped) > 0:
+        print(f"{len(skipped)} labels consist of a single batch or is too small. Skip.")
     # prepare call of kBET per cluster
     kBET_scores = {
         "cluster": list(skipped),
@@ -310,14 +312,16 @@ def calc_kBET_across_labels(
             k0 = np.floor(size_max / adata_sub.n_obs).astype("int")
 
         stat_mean, pvalue_mean, accept_rate = calc_kBET(
-            adata_sub, batch_key, embed, k=k0, alpha=alpha, n_jobs=n_jobs
+            adata_sub, batch_key, embed, k=k0, alpha=alpha, n_jobs=n_jobs, temp_folder=temp_folder
         )
         kBET_scores["cluster"].append(clus)
         kBET_scores["stat_mean"].append(stat_mean)
         kBET_scores["pvalue_mean"].append(pvalue_mean)
         kBET_scores["accept_rate"].append(accept_rate)
 
-    return np.nanmean(kBET_scores["stat_mean"]), np.nanmean(kBET_scores["pvalue_mean"]), np.nanmean(kBET_scores["accept_rate"])
+    if return_means:
+        return np.nanmean(kBET_scores["stat_mean"]), np.nanmean(kBET_scores["pvalue_mean"]), np.nanmean(kBET_scores["accept_rate"])
+    return kBET_scores
 
 
 # Source: https://github.com/lilab-bcb/pegasus/blob/ef3f6ed281b6aa0b2b91777de7cf5ac8f9342405/pegasus/tools/nearest_neighbors.py#L397
