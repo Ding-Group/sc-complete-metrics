@@ -27,6 +27,7 @@ def scgraph(
     label_key,
     embed,
     method: Literal['default', 'fisher_poisson', 'fisher_multinomial'] = 'default',
+    metric: str = "euclidean",
     trim_rate: float = 0.05,
     thres_batch: int = 100,
     thres_celltype: int = 10,
@@ -35,7 +36,18 @@ def scgraph(
     """scGraph
 
     :param adata: AnnData object with integrated embedding
-
+    :param batch_key: Column in ``adata.obs`` with batch information
+    :param label_key: Column in ``adata.obs`` with cell type information
+    :param embed: Key in ``adata.obsm`` with integrated embedding
+    :param method: Which version of SCGRAPH to use
+    :param metric: Distance metric to use for calculating distances in the integrated
+        embedding. If ``method`` is default, ``metric`` also refers to the distance
+        metric in PCA space
+    :param trim_rate: Trim rate for trimmed mean
+    :param thres_batch: Minimum number of cells in a batch for the batch to be 
+        included in groundtruth distances
+    :param thres_celltype: Minimum number of cells for the cell type to be
+        included in SCGRAPH computation
     """
     check_adata(adata)
     check_batch(batch_key, adata.obs)
@@ -46,6 +58,7 @@ def scgraph(
         batch_key,
         label_key,
         method=method,
+        metric=metric,
         trim_rate=trim_rate,
         thres_batch=thres_batch,
         thres_celltype=thres_celltype,
@@ -63,6 +76,7 @@ class scGraph:
         batch_key,
         label_key,
         method: Literal['default', 'fisher_poisson', 'fisher_multinomial'] = 'default',
+        metric: str = 'euclidean',
         trim_rate=0.05,
         thres_batch=100,
         thres_celltype=10,
@@ -77,6 +91,7 @@ class scGraph:
             self.metric = fisher_multinomial
         elif method == 'fisher_poisson':
             self.metric = fisher_poisson
+        self.dist_metric = metric
         self._collect = dict()
         self.consensus_df = None
         self.pca_comps = pca_comps
@@ -119,7 +134,7 @@ class scGraph:
                 trim_proportion=self.trim_rate,
                 ignore_=self.ignore_celltype,
             )
-            pca_pairdist = compute_classwise_distances(centroids_pca)
+            pca_pairdist = compute_classwise_distances(centroids_pca, metric=self.dist_metric)
             self._collect[BATCH_] = pca_pairdist.div(
                 pca_pairdist.max(axis=0), axis=1
             )
@@ -227,7 +242,7 @@ class scGraph:
             trim_proportion=self.trim_rate,
             ignore_=self.ignore_celltype,
         )
-        _pairdist = compute_classwise_distances(_centroid)
+        _pairdist = compute_classwise_distances(_centroid, metric=self.dist_metric)
         return _pairdist.div(_pairdist.max(axis=0), axis=1)
 
     def main(self, _obsm_list=None):
@@ -279,9 +294,9 @@ def calculate_trimmed_means(X, labels, trim_proportion=0.2, ignore_=[]):
 
 
 # Copied from https://github.com/Genentech/Islander/blob/main/src/Utils_Handler.py
-def compute_classwise_distances(centroids):
+def compute_classwise_distances(centroids, metric: str = "euclidean"):
     centroid_vectors = np.array([centroids[key] for key in sorted(centroids.keys())])
-    distances = cdist(centroid_vectors, centroid_vectors, "euclidean")
+    distances = cdist(centroid_vectors, centroid_vectors, metric)
     return pd.DataFrame(
         distances, columns=sorted(centroids.keys()), index=sorted(centroids.keys())
     )

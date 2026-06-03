@@ -11,12 +11,12 @@ def pcr_comparison(
     adata_post,
     covariate,
     embed=None,
-    n_comps=50,
-    linreg_method="numpy",
-    recompute_pca=False,
-    scale=True,
-    verbose=False,
-    n_threads=1,
+    n_comps: int = 50,
+    linreg_method: str = "numpy",
+    recompute_pca: bool = False,
+    scale: bool = True,
+    verbose: bool = False,
+    n_threads: int = 1,
 ):
     """Principal component regression score
 

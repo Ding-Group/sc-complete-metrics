@@ -181,13 +181,14 @@ def isolated_labels(
     label_key,
     batch_key,
     embed,
-    cluster=True,
-    cluster_key="iso_label",
+    cluster: bool = True,
+    cluster_key: str = "iso_label",
     resolutions=None,
-    iso_threshold=None,
-    scale=True,
-    return_all=False,
-    verbose=True,
+    metric: str = 'euclidean',
+    iso_threshold: int = None,
+    scale: bool = True,
+    return_all: bool = False,
+    verbose: bool = True,
     **kwargs,
 ):
     """Isolated label score
@@ -208,6 +209,7 @@ def isolated_labels(
         If iso_threshold=None, consider minimum number of batches that labels are present in
     :param cluster_key: name of key to be passed to :func:`~scib.metrics.cluster_optimal_resolution`
     :param resolutions: list of resolutions to be passed to :func:`~scib.metrics.cluster_optimal_resolution`
+    :param metric: Distance metric for silhouette
     :param scale: Whether to scale the score between 0 and 1. Only relevant for ASW scores.
     :param return_all: return scores for all isolated labels instead of aggregated mean
     :param verbose:
@@ -228,7 +230,7 @@ def isolated_labels(
     scores = {}
     if not cluster:
         adata.obs["silhouette_temp"] = silhouette_samples(
-            adata.obsm[embed], adata.obs[label_key]
+            adata.obsm[embed], adata.obs[label_key], metric=metric
         )
     for label in isolated_labels:
         score = score_isolated_label(

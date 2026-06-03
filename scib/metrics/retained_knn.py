@@ -4,7 +4,12 @@ from sklearn.neighbors import NearestNeighbors
 
 
 def retained_knn(
-    adata_pre, adata_post, batch_key, embed_post, n_neighbors: int = 50
+    adata_pre,
+    adata_post,
+    batch_key,
+    embed_post,
+    n_neighbors: int = 50,
+    metric: str = "euclidean"
 ):
     """Retained nearest neighbors
 
@@ -15,6 +20,7 @@ def retained_knn(
     :param batch_key: Key in both AnnData .obs with batch information
     :param embed_post: Post-integration embedding key in adata_post.obsm.
     :param n_neighbors: Number of nearest neighbors to consider.
+    :param metric: Distance metric for nearest neighbor computation.
     """
     batches = np.unique(adata_pre.obs[batch_key])
 
@@ -28,10 +34,11 @@ def retained_knn(
         if subset.n_obs <= n_neighbors:
             sc.pp.highly_variable_genes(subset)
             sc.tl.pca(subset, n_comps=n_comps)
-        # If not, then don't need to compute PCA, the nearest neighbors are just all the cells.
+        # If not, then don't need to compute PCA, 
+        # the nearest neighbors are just all the cells.
         neighbors_to_use = min(subset.n_obs - 1, n_neighbors)
 
-        nn = NearestNeighbors(n_neighbors=neighbors_to_use + 1).fit(subset.obsm["X_pca"])
+        nn = NearestNeighbors(n_neighbors=neighbors_to_use + 1, metric=metric).fit(subset.obsm["X_pca"])
         _, indices = nn.kneighbors(subset.obsm["X_pca"])
         indices = indices[:, 1:]
 
@@ -40,7 +47,7 @@ def retained_knn(
 
     adata_post = adata_post[obs_names]
 
-    nn = NearestNeighbors(n_neighbors=n_neighbors + 1).fit(adata_post.obsm[embed_post])
+    nn = NearestNeighbors(n_neighbors=n_neighbors + 1, metric=metric).fit(adata_post.obsm[embed_post])
     _, indices = nn.kneighbors(adata_post.obsm[embed_post])
     indices = indices[:, 1:]
 
@@ -48,7 +55,7 @@ def retained_knn(
 
     scores = []
     for i_pre, i_post in zip(neighbors_pre, neighbors_post):
-        i_post = i_post[:len(i_pre)] # In case i_pre comes from fewer neighbors
+        i_post = i_post[: len(i_pre)]  # In case i_pre comes from fewer neighbors
         scores.append(len(np.intersect1d(i_pre, i_post)) / n_neighbors)
 
     return np.mean(scores)

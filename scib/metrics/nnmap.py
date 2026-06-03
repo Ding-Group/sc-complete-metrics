@@ -15,7 +15,7 @@ def nnmap(
     label_key,
     embed,
     k: float = 0.01,
-    metric: str = "minkowski",
+    metric: str = "euclidean",
     similarity: typing.Callable = _identity,
     n_jobs: int = 1,
 ) -> float:

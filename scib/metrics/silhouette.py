@@ -9,7 +9,7 @@ except ImportError:
 
 
 @renamed_arg("group_key", "label_key")
-def silhouette(adata, label_key, embed, metric="euclidean", scale=True):
+def silhouette(adata, label_key, embed, metric: str = "euclidean", scale: bool = True):
     """Average silhouette width (ASW)
 
     Wrapper for sklearn silhouette function values range from [-1, 1] with
@@ -60,10 +60,10 @@ def silhouette_batch(
     batch_key,
     label_key,
     embed,
-    metric="euclidean",
-    return_all=False,
-    scale=True,
-    verbose=True,
+    metric: str = "euclidean",
+    return_all: bool = False,
+    scale: bool = True,
+    verbose: bool = True,
 ):
     """Batch ASW
 
@@ -173,7 +173,7 @@ def silhouette_cluster(
     label_key, # Unused
     cluster_key,
     embed,
-    metric="euclidean",
+    metric: str = "euclidean",
     scale=True,
 ):
     if embed not in adata.obsm.keys():

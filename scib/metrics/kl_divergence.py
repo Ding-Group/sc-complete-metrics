@@ -9,23 +9,15 @@ def kl_divergence(
     batch_key,
     embed,
     k: int = None,
+    metric: str = "euclidean"
 ):
-    """
-    Compute average KL divergence between local and global batch distribution.
+    """Compute average KL divergence between local and global batch distribution
+    in nearest neighborhoods.
 
-    Parameters
-    ----------
-    adata : AnnData
-        Input AnnData
-    batch_key : str
-        Column in adata.obs with batch annotations.
-    k : int
-        Number of neighbors for local distribution. Default to 5 x # of batches
-
-    Returns
-    -------
-    float
-        Average KL divergence over all cells.
+    :param adata: AnnData object
+    :param batch_key: Column in ``adata.obs`` with batch annotations.
+    :param k: Number of neighbors for local distribution. Default to 5 x # of batches
+    :param metric: Distance metric for nearest neighbor computation
     """
     # Sanity checks
     check_adata(adata)
@@ -45,7 +37,7 @@ def kl_divergence(
     global_dist = counts / n_cells
 
     # Fit kNN and get neighbors (excluding self)
-    nn = NearestNeighbors(n_neighbors=k + 1).fit(X)
+    nn = NearestNeighbors(n_neighbors=k + 1, metric=metric).fit(X)
     knn_indices = nn.kneighbors(X, return_distance=False)[:, 1:]
 
     # Compute KL for each cell

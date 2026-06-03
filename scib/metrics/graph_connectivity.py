@@ -1,9 +1,17 @@
 import numpy as np
 import pandas as pd
+import scanpy as sc
 from scipy.sparse.csgraph import connected_components
 
 
-def graph_connectivity(adata, label_key, obsp_key: str = "connectivities"):
+def graph_connectivity(
+    adata,
+    label_key,
+    embed: str = None,
+    obsp_key: str = "connectivities",
+    k: int = 15,
+    metric: str = "euclidean",
+):
     """Graph Connectivity
 
     Quantify the connectivity of the subgraph per cell type label.
@@ -46,13 +54,19 @@ def graph_connectivity(adata, label_key, obsp_key: str = "connectivities"):
             "Please compute the neighborhood graph before running this function!"
         )
 
+    # Specifically for GC k ablation
+    if adata.uns["neighbors"]["params"]["n_neighbors"] != k:
+        sc.pp.neighbors(adata, use_rep=embed, n_neighbors=k)
+    
+    # Specifically for distance ablation
+    if metric != 'euclidean':
+        sc.pp.neighbors(adata, use_rep=embed, n_neighbors=k, metric=metric)
+
     clust_res = []
 
     for label in adata.obs[label_key].cat.categories:
         adata_sub = adata[adata.obs[label_key].isin([label])]
-        _, labels = connected_components(
-            adata_sub.obsp[obsp_key], connection="strong"
-        )
+        _, labels = connected_components(adata_sub.obsp[obsp_key], connection="strong")
         tab = pd.value_counts(labels)
         clust_res.append(tab.max() / sum(tab))
 

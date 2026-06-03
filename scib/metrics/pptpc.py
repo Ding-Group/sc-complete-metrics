@@ -4,7 +4,7 @@ from sklearn.neighbors import NearestNeighbors
 from ..utils import check_adata, check_batch
 
 
-def pptpc(adata, batch_key, label_key, embed, n_neighbors: int = 100):
+def pptpc(adata, batch_key, label_key, embed, n_neighbors: int = 100, metric: str = "euclidean"):
     """Proportion of Positive and True Positive Cells
 
     :param adata: AnnData object.
@@ -12,13 +12,14 @@ def pptpc(adata, batch_key, label_key, embed, n_neighbors: int = 100):
     :param label_key: Key in adata.obs with cell type labels.
     :param embed: Key in adata.obsm with integrated embedding.
     :param n_neighbors: Number of nearest neighbors per cell.
+    "param metric: Distance metric for nearest neighbor computation.
     """
     check_adata(adata)
     check_batch(batch_key, adata.obs)
     check_batch(label_key, adata.obs)
 
     # Add graph for pptpc
-    nn = NearestNeighbors(n_neighbors=n_neighbors + 1).fit(adata.obsm[embed])
+    nn = NearestNeighbors(n_neighbors=n_neighbors + 1, metric=metric).fit(adata.obsm[embed])
     _, indices = nn.kneighbors(adata.obsm[embed])
     indices = indices[:, 1:]
 

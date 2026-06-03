@@ -5,7 +5,14 @@ from sklearn.neighbors import NearestNeighbors
 from ..utils import check_adata, check_batch
 
 
-def alignment(adata_int, batch_key: str, embed: str, n_neighbors: int = None, seed: int = 0) -> float:
+def alignment(
+    adata_int,
+    batch_key: str,
+    embed: str,
+    n_neighbors: int = None,
+    metric: str = "euclidean",
+    seed: int = 0
+) -> float:
     """Alignment score
 
     Computes the alignment score from Butler et al. "Integrating single-cell
@@ -16,6 +23,7 @@ def alignment(adata_int, batch_key: str, embed: str, n_neighbors: int = None, se
     :param adata_int: AnnData with integrated embedding
     :param batch_key: Column in adata.obs with batch information
     :param embed: Key in adata.obsm with integrated embedding
+    :param metric: Distance metric for nearest neighbor computation
     :param n_neighbors: Number of nearest neighbors to use.
         Defaults to 1% of the number of cells.
     """
@@ -37,7 +45,7 @@ def alignment(adata_int, batch_key: str, embed: str, n_neighbors: int = None, se
 
     if n_neighbors is None:
         n_neighbors = adata_int.n_obs // 100
-    nn = NearestNeighbors(n_neighbors=n_neighbors+1, n_jobs=-1).fit(X)
+    nn = NearestNeighbors(n_neighbors=n_neighbors+1, metric=metric, n_jobs=-1).fit(X)
     knn_graph = nn.kneighbors(X, return_distance=False)[:, 1:]
     scores = []
     for i, neighbors in enumerate(knn_graph):

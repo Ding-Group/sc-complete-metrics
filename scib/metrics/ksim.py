@@ -6,17 +6,22 @@ def ksim(
     embed,
     beta: float = 0.9,
     k: int = 25,
-    metric: str = "minkowski",
-    n_jobs: int = 1
+    metric: str = "euclidean"
 ) -> float:
-    """
-    kSIM from Pegasus.
+    """kSIM from Pegasus
+
+    :param adata: AnnData object
+    :param label_key: Column in ``adata.obs`` with cell type information
+    :param embed: Key in ``adata.obsm`` with the integrated embedding
+    :param beta: Cutoff for acceptance
+    :param k: Number of nearest neighbors
+    :param metric: Distance metric for nearest neighbor computation
     """
     x = adata.obsm[embed]
     y = adata.obs[label_key].to_numpy()
 
     nearestNeighbors = sklearn.neighbors.NearestNeighbors(
-        n_neighbors=min(y.shape[0], k + 1), metric=metric, n_jobs=n_jobs
+        n_neighbors=min(y.shape[0], k + 1), metric=metric, n_jobs=-1
     )
     nearestNeighbors.fit(x)
     nni = nearestNeighbors.kneighbors(x, return_distance=False)

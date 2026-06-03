@@ -1,4 +1,3 @@
-import numpy as np
 import sklearn
 
 
@@ -7,13 +6,19 @@ def pstdb(
     batch_key,
     label_key,
     embed,
-    k: int = 50
+    k: int = 50,
+    metric: str = "euclidean"
 ):
+    """Proportion of nearest neighbors of the same cell type but a different batch.
+
+    :param adata: AnnData object
+    :param batch_key: Column in ``adata.obs`` with batch information
+    :param label_key: Column in ``adata.obs`` with cell type information
+    :param embed: Key in ``adata.obsm`` with integrated embedding
+    :param k: Number of nearest neighbors
+    :param metric: Distance metric for nearest neighbor computation
     """
-    Proportion of nearest neighbors of the same cell type but
-    a different batch.
-    """
-    nn = sklearn.neighbors.NearestNeighbors(n_neighbors=k + 1).fit(adata.obsm[embed])
+    nn = sklearn.neighbors.NearestNeighbors(n_neighbors=k + 1, metric=metric).fit(adata.obsm[embed])
     nn.fit(adata.obsm[embed])
     nni = nn.kneighbors(adata.obsm[embed], return_distance=False)
 
@@ -26,6 +31,6 @@ def pstdb(
     cell_labels = labels[nni[:, 0]]
 
     batch_mismatch = nn_batches != cell_batches[:, None]
-    label_match    = nn_labels == cell_labels[:, None]
+    label_match = nn_labels == cell_labels[:, None]
 
     return (batch_mismatch & label_match).mean()

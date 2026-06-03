@@ -5,7 +5,7 @@ from sklearn.neighbors import NearestNeighbors
 from ..utils import check_adata, check_batch
 
 
-def agreement(adata_pre, adata_post, batch_key, label_key, embed, n_comps: int = 50, n_neighbors: int = 15):
+def agreement(adata_pre, adata_post, batch_key, label_key, embed, n_comps: int = 50, n_neighbors: int = 15, metric: str = "euclidean"):
     """Agreement score
 
     Computes the agreement score from Welch et al. "Single-cell multi-omic
@@ -19,7 +19,8 @@ def agreement(adata_pre, adata_post, batch_key, label_key, embed, n_comps: int =
     :param label_key: Column in adata.obs with ground truth labels
     :param embed: Key in adata_post.obsm with integrated embedding
     :param n_neighbors: Number of neighbors to consider
-    :return: Agreement score (float)
+    :param metric: Distance metric for nearest neighbor computation
+    :return: Agreement score
     """
     check_adata(adata_pre)
     check_adata(adata_post)
@@ -43,13 +44,13 @@ def agreement(adata_pre, adata_post, batch_key, label_key, embed, n_comps: int =
         
         neighbors_use = min(n_neighbors, subset_pre.n_obs - 1)
 
-        nn = NearestNeighbors(n_neighbors=neighbors_use+1).fit(subset_pre.obsm['X_pca'])
+        nn = NearestNeighbors(n_neighbors=neighbors_use+1, metric=metric).fit(subset_pre.obsm['X_pca'])
         _, indices = nn.kneighbors(subset_pre.obsm['X_pca'])
         indices1 = indices[:, 1:]
     
         subset_post = adata_post[adata_post.obs[batch_key] == c_key].copy()
         subset_post = adata_post[subset_pre.obs.index]  # Make sure the cells are in the same order
-        nn = NearestNeighbors(n_neighbors=neighbors_use+1).fit(subset_post.obsm[embed])
+        nn = NearestNeighbors(n_neighbors=neighbors_use+1, metric=metric).fit(subset_post.obsm[embed])
         _, indices = nn.kneighbors(subset_post.obsm[embed])
         indices2 = indices[:, 1:]
 

@@ -256,6 +256,13 @@ def metrics(
             layers=adata.layers,
         )
 
+    if all_cluster_ and metric_kwargs.get('all_cluster_kwargs'):
+        # Recalculate the nearest neighbor graph using the metric
+        # if the distance metric is not Euclidean
+        params = metric_kwargs['all_cluster_kwargs']
+        if params.get('metric', 'euclidean') != 'euclidean':
+            sc.pp.neighbors(adata_int, metric=params['metric'])
+
     if nmi_ or all_cluster_:
         print("NMI...")
         _, nmi_score = cluster_optimal_resolution(
@@ -274,23 +281,25 @@ def metrics(
 
     if casw_:
         print("Cell type silhouette score...")
+        casw_kwargs = convert_values(metric_kwargs.get("casw_kwargs", {}), silhouette)
         asw_label = silhouette(
             adata_int,
             label_key=label_key,
             embed=embed,
-            metric=metric_kwargs.get("si_metric", "euclidean"),
+            metric=casw_kwargs.get("metric", "euclidean"),
         )
     else:
         asw_label = np.nan
 
     if basw_:
         print("Batch silhouette score...")
+        basw_kwargs = convert_values(metric_kwargs.get("basw_kwargs", {}), silhouette_batch)
         asw_batch = silhouette_batch(
             adata_int,
             batch_key=batch_key,
             label_key=label_key,
             embed=embed,
-            metric=metric_kwargs.get("si_metric", "euclidean"),
+            metric=basw_kwargs.get("metric", "euclidean"),
             return_all=False,
             verbose=False,
         )
@@ -299,20 +308,22 @@ def metrics(
 
     if clustasw_ or all_cluster_:
         print("Cluster ASW score...")
+        clustasw_kwargs = convert_values(metric_kwargs.get("clustasw_kwargs", {}) | metric_kwargs.get("all_cluster_kwargs", {}), silhouette_cluster)
         _, silhouette_cluster_score = cluster_optimal_resolution(
             adata_int,
             label_key,
             cluster_key,
             metric=silhouette_cluster,
-            metric_kwargs={"embed": embed},
+            metric_kwargs={"embed": embed, "metric": clustasw_kwargs.get('metric', 'euclidean')},
         )
     else:
         silhouette_cluster_score = np.nan
 
     if pcr_:
         print("PC regression...")
+        pcr_kwargs = convert_values(metric_kwargs.get("pcr_kwargs", {}), pcr_comparison)
         pcr_score = pcr_comparison(
-            adata, adata_int, embed=embed, covariate=batch_key, verbose=verbose
+            adata, adata_int, embed=embed, covariate=batch_key, verbose=verbose, **pcr_kwargs
         )
     else:
         pcr_score = np.nan
@@ -346,7 +357,7 @@ def metrics(
     else:
         cc_score = np.nan
 
-    if isof1_:
+    if isof1_ or all_cluster_:
         print("Isolated labels F1...")
         il_score_f1 = isolated_labels(
             adata_int,
@@ -362,20 +373,24 @@ def metrics(
 
     if isoasw_:
         print("Isolated labels ASW...")
+        isoasw_kwargs = convert_values(metric_kwargs.get("isoasw_kwargs", {}), isolated_labels)
         il_score_asw = isolated_labels(
             adata_int,
             label_key=label_key,
             batch_key=batch_key,
             embed=embed,
             cluster=False,
-            iso_threshold=metric_kwargs.get("n_isolated", None),
             verbose=False,
+            **isoasw_kwargs
         )
     else:
         il_score_asw = np.nan
 
     if isolisi_:
         print("Isolated labels CLISI...")
+        isolisi_kwargs = metric_kwargs.get("isolisi_kwargs", {})
+        if isolisi_kwargs.get('metric', 'euclidean') != 'euclidean':
+            sc.pp.neighbors(adata_int, metric=params['metric'])
         il_score_lisi = isolated_labels_lisi(
             adata_int,
             label_key=label_key,
@@ -387,44 +402,42 @@ def metrics(
 
     if gc_:
         print("Graph connectivity...")
-        gc_kwargs = convert_values(
-            metric_kwargs.get("gc_kwargs", {}), graph_connectivity
-        )
-        graph_conn_score = graph_connectivity(adata_int, label_key=label_key, **gc_kwargs)
+        gc_kwargs = convert_values(metric_kwargs.get("gc_kwargs", {}), graph_connectivity)
+        graph_conn_score = graph_connectivity(adata_int, label_key=label_key, embed=embed, **gc_kwargs)
     else:
         graph_conn_score = np.nan
 
     if scgraph_:
         print("scGraph...")
-        scgraph_avg, scgraph_rank_pca, scgraph_corr_pca, scgraph_corr_weighted = (
-            scgraph(adata_int, batch_key=batch_key, label_key=label_key, embed=embed)
-        )
-        scgraph_avg = scgraph_avg.values[0]
+        scgraph_kwargs = convert_values(metric_kwargs.get("scgraph_kwargs", {}), scgraph)
+        scgraph_avg, _, _, _ =  scgraph(adata_int, batch_key=batch_key, label_key=label_key, embed=embed, **scgraph_kwargs)
     else:
-        scgraph_avg = scgraph_rank_pca = scgraph_corr_pca = scgraph_corr_weighted = (
-            np.nan
-        )
+        scgraph_avg = np.nan
 
     if scgraphp_:
         print("scGraph with Fisher Poisson distance...")
+        scgraphp_kwargs = convert_values(metric_kwargs.get("scgraphp_kwargs", {}), scgraph)
         scgraphp_avg, _, _, _ = scgraph(
             adata_int,
             batch_key=batch_key,
             label_key=label_key,
             embed=embed,
-            method='fisher_poisson'
+            method='fisher_poisson',
+            **scgraphp_kwargs
         )
     else:
         scgraphp_avg = np.nan
 
     if scgraphm_:
         print("scGraph with Fisher multinomial distance...")
+        scgraphm_kwargs = convert_values(metric_kwargs.get("scgraphm_kwargs", {}), scgraph)
         scgraphm_avg, _, _, _ = scgraph(
             adata_int,
             batch_key=batch_key,
             label_key=label_key,
             embed=embed,
-            method='fisher_multinomial'
+            method='fisher_multinomial',
+            **scgraphm_kwargs
         )
     else:
         scgraphm_avg = np.nan
@@ -446,9 +459,7 @@ def metrics(
 
     if clisi_:
         print("cLISI score...")
-        clisi_kwargs = convert_values(
-            metric_kwargs.get("clisi_kwargs", {}), clisi_graph
-        )
+        clisi_kwargs = convert_values(metric_kwargs.get("clisi_kwargs", {}), clisi_graph)
         clisi_score = clisi_graph(
             adata_int,
             batch_key=batch_key,
@@ -463,9 +474,7 @@ def metrics(
 
     if ilisi_:
         print("iLISI score...")
-        ilisi_kwargs = convert_values(
-            metric_kwargs.get("ilisi_kwargs", {}), ilisi_graph
-        )
+        ilisi_kwargs = convert_values(metric_kwargs.get("ilisi_kwargs", {}), ilisi_graph)
         ilisi_score = ilisi_graph(
             adata_int,
             batch_key=batch_key,
@@ -479,7 +488,8 @@ def metrics(
 
     if cilisi_:
         print("CiLISI score...")
-        cilisi_score = cilisi(adata_int, batch_key, label_key, embed)
+        cilisi_kwargs = convert_values(metric_kwargs.get("cilisi_kwargs", {}), cilisi)
+        cilisi_score = cilisi(adata_int, batch_key, label_key, embed, **cilisi_kwargs)
     else:
         cilisi_score = np.nan
 
@@ -555,9 +565,7 @@ def metrics(
 
     if fknn_:
         print("Cross-fold k-NN score...")
-        fknn_kwargs = convert_values(
-            metric_kwargs.get("fknn_kwargs", {}), crossfold_knn
-        )
+        fknn_kwargs = convert_values(metric_kwargs.get("fknn_kwargs", {}), crossfold_knn)
         crossfold_knn_score = crossfold_knn(adata_int, label_key, embed, **fknn_kwargs)
     else:
         crossfold_knn_score = np.nan
@@ -608,19 +616,19 @@ def metrics(
 
     if bnentropy_ and cnentropy_:
         print("Shannon entropy nearest neighbor graph...")
-        entropy_kwargs = convert_values(
-            metric_kwargs.get("bnentropy_kwargs", {}), shannon_entropy_nn
-        )
+        entropy_kwargs = convert_values(metric_kwargs.get("bnentropy_kwargs", {}), shannon_entropy_nn)
         batch_shannon_entropy_nn_score, cell_shannon_entropy_nn_score = (
             shannon_entropy_nn(
-                adata_int, batch_key, label_key, embed=embed, **entropy_kwargs
+                adata_int,
+                batch_key,
+                label_key,
+                embed=embed,
+                **entropy_kwargs
             )
         )
     elif bnentropy_:
         print("Shannon entropy nearest neighbor graph...")
-        entropy_kwargs = convert_values(
-            metric_kwargs.get("bnentropy_kwargs", {}), shannon_entropy_nn
-        )
+        entropy_kwargs = convert_values(metric_kwargs.get("bnentropy_kwargs", {}), shannon_entropy_nn)
         batch_shannon_entropy_nn_score, _ = shannon_entropy_nn(
             adata_int, batch_key, label_key, embed=embed, **entropy_kwargs
         )
@@ -670,6 +678,9 @@ def metrics(
 
     if arif_:
         print("ARI fixed...")
+        arif_kwargs = metric_kwargs.get("arif_kwargs", {})
+        if arif_kwargs.get('metric', 'euclidean') != 'euclidean':
+            sc.pp.neighbors(adata_int, metric=params['metric'])
         arif_score = ari_fixed(adata_int, label_key, cluster_key, embed=embed)
     else:
         arif_score = np.nan
@@ -837,7 +848,8 @@ def metrics(
 
     if bras_:
         print("BRAS...")
-        bras_score = bras(adata_int, label_key, batch_key, embed)
+        bras_kwargs = convert_values(metric_kwargs.get('bras_kwargs', {}), bras)
+        bras_score = bras(adata_int, label_key, batch_key, embed, **bras_kwargs)
     else:
         bras_score = np.nan
 
@@ -903,6 +915,9 @@ def metrics(
 
     if nmif_:
         print("NMI fixed...")
+        nmif_kwargs = metric_kwargs.get("nmif_kwargs", {})
+        if nmif_kwargs.get('metric', 'euclidean') != 'euclidean':
+            sc.pp.neighbors(adata_int, metric=params['metric'])
         nmi_fixed_score = nmi_fixed(adata_int, label_key, cluster_key)
     else:
         nmi_fixed_score = np.nan

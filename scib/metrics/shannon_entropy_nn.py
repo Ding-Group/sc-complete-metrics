@@ -6,7 +6,7 @@ from numba import njit
 from ..utils import check_adata, check_batch
 
 
-def shannon_entropy_nn(adata, batch_key, label_key, embed, n_neighbors: int = 50):
+def shannon_entropy_nn(adata, batch_key, label_key, embed, n_neighbors: int = 50, metric: str = "euclidean"):
     """Shannon entropy
 
     Compute the batch and cell type Shannon entropy within each cell's
@@ -17,6 +17,7 @@ def shannon_entropy_nn(adata, batch_key, label_key, embed, n_neighbors: int = 50
     :param label_key: Key in adata.obs with cell type labels
     :param embed: Key in adata.obsm with integrated embedding,
     :param n_neighbors: Number of nearest neighbors. Default: 50
+    :param metric: Distance metric for nearest neighbor computation
     :return: Shannon entropy
     """
     # Basic checks
@@ -24,7 +25,7 @@ def shannon_entropy_nn(adata, batch_key, label_key, embed, n_neighbors: int = 50
     check_batch(batch_key, adata.obs)
     check_batch(label_key, adata.obs)
 
-    nn = NearestNeighbors(n_neighbors=n_neighbors + 1).fit(adata.obsm[embed])
+    nn = NearestNeighbors(n_neighbors=n_neighbors + 1, metric=metric).fit(adata.obsm[embed])
     _, indices = nn.kneighbors(adata.obsm[embed])
     indices = indices[:, 1:]
 

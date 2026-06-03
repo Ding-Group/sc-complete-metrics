@@ -2,22 +2,12 @@ import numpy as np
 from scipy.special import rel_entr
 
 def cluster_batch_entropy(adata, label_key, cluster_key):
-    """
-    Compute Cluster Batch Entropy (CBE) score.
+    """Cluster batch entropy
 
-    Parameters
-    ----------
-    adata : AnnData
-        Annotated data matrix with obs annotations for clustering and batch.
-    label_key : str
-        Key in `adata.obs` indicating batch labels.
-    cluster_key : str
-        Key in `adata.obs` indicating clustering labels.
-
-    Returns
-    -------
-    cbe : float
-        Cluster batch entropy score (between 0 and 1).
+    :param adata: AnnData object with obs annotations for clustering and batch
+    :param label_key: Key in ``adata.obs`` indicating batch labels
+    :param cluster_key: Key in ``adata.obs`` indicating clustering labels
+    :return: Cluster batch entropy score (between 0 and 1)
     """
     df = adata.obs[[cluster_key, label_key]].copy()
 

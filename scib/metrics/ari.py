@@ -95,7 +95,7 @@ def ari_fixed(
     cluster_key,
     cluster_function=None,
     embed=None,
-    resolution=2.0,
+    resolution: float = 2.0,
     **kwargs,
 ):
     """ARI fixed

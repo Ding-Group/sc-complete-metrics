@@ -273,14 +273,25 @@ def calc_kBET_across_labels(
     embed: str = "X_integration",
     k: int = 70,
     alpha: float = 0.05,
+    metric: str = "euclidean",
     n_jobs: int = -1,
     temp_folder: str = None,
     return_means: bool = True
 ) -> Tuple[float]:
-    """
-    Calculate the kBET metric using the Pegasus way, except averaged across labels.
+    """Calculate the kBET metric using the Pegasus way, except averaged across labels.
     This approach mirrors the scib kBET which splits up the data into label-specific
     subsets and calculates the kBET per label.
+
+    :param adata: AnnData object
+    :param batch_key: Column in ``adata.obs`` with batch information
+    :param label_key: Column in ``adata.obs`` with cell type information
+    :param embed: Key in ``adata.obsm`` with the integrated embedding 
+    :param k: Number of nearest neighbors to consider
+    :param metric: Distance metric to use for nearest neighbor computation
+    :param alpha: Acceptance rate threshold. A cell is accepted if its kBET p-value is greater than or equal to ``alpha``
+    :param n_jobs: Number of threads used
+    :param temp_folder: Temporary folder for joblib execution.
+    :param return_means: Whether to return the mean of kBET values across cells or return all values
     """
     counts = adata.obs.groupby(label_key).agg(
         {label_key: "count", batch_key: "nunique"}
@@ -331,6 +342,7 @@ def calc_kBET(
     embed: str = "X_integration",
     k: int = 25,
     alpha: float = 0.05,
+    metric: str = 'euclidean',
     n_jobs: int = -1,
     temp_folder: str = None,
 ) -> Tuple[float]:
@@ -338,51 +350,15 @@ def calc_kBET(
 
     The kBET metric is defined in [Büttner18]_, which measures if cells from different samples mix well in their local neighborhood.
 
-    Parameters
-    ----------
-    data: ``anndata.AnnData``
-        Annotated data matrix with rows for cells and columns for genes.
-
-    batch_key: ``str``
-        The sample attribute to consider. Must exist in ``adata.obs``.
-
-    embed: ``str``, optional, default: ``"X_integration"``
-        The embedding representation to be used.
-
-    K: ``int``, optional, default: ``25``
-        Number of nearest neighbors, using L2 metric.
-
-    alpha: ``float``, optional, default: ``0.05``
-        Acceptance rate threshold. A cell is accepted if its kBET p-value is greater than or equal to ``alpha``.
-
-    n_jobs: ``int``, optional, default: ``-1``
-        Number of threads used. If ``-1``, use all physical CPU cores.
-
-    random_state: ``int``, optional, default: ``0``
-        Random seed set for reproducing results.
-
-    temp_folder: ``str``, optional, default: ``None``
-        Temporary folder for joblib execution.
-
-    use_cache: ``bool``, optional, default: ``True``
-        If use cache results for kNN.
-
-    Returns
-    -------
-    stat_mean: ``float``
-        Mean kBET chi-square statistic over all cells.
-
-    pvalue_mean: ``float``
-        Mean kBET p-value over all cells.
-
-    accept_rate: ``float``
-        kBET Acceptance rate of the sample.
-
-    Examples
-    --------
-    >>> pg.calc_kBET(data, attr = 'Channel')
-
-    >>> pg.calc_kBET(data, attr = 'Channel', rep = 'umap')
+    :param adata: AnnData object
+    :param batch_key: Column in ``adata.obs`` with batch information
+    :param embed: Key in ``adata.obsm`` with the integrated embedding 
+    :param k: Number of nearest neighbors to consider
+    :param metric: Distance metric to use for nearest neighbor computation
+    :param alpha: Acceptance rate threshold. A cell is accepted if its kBET p-value is greater than or equal to ``alpha``
+    :param n_jobs: Number of threads used
+    :param temp_folder: Temporary folder for joblib execution.
+    :param use_cache: If use cache results for kNN.
     """
     # assert attr in adata.obs
     if adata.obs[batch_key].dtype.name != "category":
@@ -397,7 +373,7 @@ def calc_kBET(
     attr_values = adata.obs[batch_key].cat.rename_categories(range(nbatch)).values
 
     # Explicitly want to include itself as one of the nearest neighbors
-    nearestNeighbors = sklearn.neighbors.NearestNeighbors(n_neighbors=k, n_jobs=n_jobs)
+    nearestNeighbors = sklearn.neighbors.NearestNeighbors(n_neighbors=k, n_jobs=n_jobs, metric=metric)
     nearestNeighbors.fit(adata.obsm[embed])
     knn_indices = nearestNeighbors.kneighbors(adata.obsm[embed], return_distance=False)
 

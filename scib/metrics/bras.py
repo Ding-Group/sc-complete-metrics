@@ -1,4 +1,4 @@
-from scib_metrics.metrics import bras as bras_
+from scib_metrics import bras as bras_
 
 
 def bras(
@@ -6,9 +6,9 @@ def bras(
     label_key,
     batch_key,
     embed,
-    chunk_size=256,
-    metric = "cosine",
-    between_cluster_distances = "mean_other"
+    chunk_size: int = 256,
+    metric: str = "cosine",
+    between_cluster_distances: str = "mean_other"
 ):
     """BRAS
 

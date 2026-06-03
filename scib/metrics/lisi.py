@@ -43,6 +43,7 @@ def ilisi_graph(
     type_,
     use_rep: str = "X_emb",
     k0: int = 90,
+    metric: str = "euclidean",
     subsample=None,
     scale=True,
     n_cores=1,
@@ -95,7 +96,7 @@ def ilisi_graph(
     check_adata(adata)
     check_batch(batch_key, adata.obs)
 
-    adata_tmp = recompute_knn(adata, type_, use_rep)
+    adata_tmp = recompute_knn(adata, type_, use_rep, metric=metric)
     ilisi_score = lisi_graph_py(
         adata=adata_tmp,
         obs_key=batch_key,
@@ -125,6 +126,7 @@ def clisi_graph(
     use_rep: str = "X_emb",
     batch_key: str = None,
     k0: int = 90,
+    metric: str = "euclidean",
     subsample=None,
     scale=True,
     n_cores=1,
@@ -149,6 +151,7 @@ def clisi_graph(
     :param k0: number of nearest neighbors to compute lisi score
         Please note that the initial neighborhood size that is
         used to compute shortest paths is 15.
+    :param metric: Distance metric for nearest neighbor graph computation
     :param subsample: Percentage of observations (integer between 0 and 100)
         to which lisi scoring should be subsampled
     :param scale: scale output values between 0 and 1 (True/False)
@@ -180,7 +183,7 @@ def clisi_graph(
     check_adata(adata)
     check_batch(label_key, adata.obs)
 
-    adata_tmp = recompute_knn(adata, type_, use_rep)
+    adata_tmp = recompute_knn(adata, type_, use_rep, metric=metric)
 
     scores = lisi_graph_py(
         adata=adata_tmp,
@@ -204,16 +207,19 @@ def clisi_graph(
     return clisi
 
 
-def recompute_knn(adata, type_, use_rep="X_emb"):
+def recompute_knn(adata, type_, use_rep="X_emb", metric="euclidean"):
     """Recompute neighbours"""
     if type_ == "embed":
-        return sc.pp.neighbors(adata, n_neighbors=15, use_rep=use_rep, copy=True)
+        return sc.pp.neighbors(adata, n_neighbors=15, use_rep=use_rep, metric=metric, copy=True)
     elif type_ == "full":
         if "X_pca" not in adata.obsm.keys():
             sc.pp.pca(adata, svd_solver="arpack")
         return sc.pp.neighbors(adata, n_neighbors=15, copy=True)
     else:
         # if knn - do not compute a new neighbourhood graph (it exists already)
+        # unless you want to change the knn distance metric
+        if metric != "euclidean":
+            sc.pp.neighbors(adata, n_neighbors=15, use_rep=use_rep, metric=metric, copy=True)
         return adata.copy()
 
 

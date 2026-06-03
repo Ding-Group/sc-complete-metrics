@@ -12,10 +12,11 @@ def cilisi(
     label_key,
     embed=None,
     k0: int = 90,
+    metric: str = "euclidean",
     subsample=None,
-    scale=True,
-    n_cores=1,
-    verbose=False,
+    scale: bool = True,
+    n_cores: int = 1,
+    verbose: bool = False,
     return_all: bool = False
 ):
     """
@@ -37,6 +38,7 @@ def cilisi(
             type_="embed",
             use_rep=embed,
             k0=k0,
+            metric=metric,
             subsample=subsample,
             scale=scale,
             n_cores=n_cores,
