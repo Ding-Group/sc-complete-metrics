@@ -33,4 +33,5 @@ def mixing(adata, batch_key, embed, k: int = 5, max_k: int = 300, metric: str = 
             ranks.append(max_k if len(equal_batch) < k else equal_batch[k-1])
         all_ranks.append(np.median(ranks) / max_k)
 
+    # TODO: Flip this as this is the wrong sign
     return np.mean(all_ranks)

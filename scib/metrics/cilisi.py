@@ -19,8 +19,20 @@ def cilisi(
     verbose: bool = False,
     return_all: bool = False
 ):
-    """
-    Average iLISI per cell type
+    """Average iLISI per cell type.
+
+    :param adata: AnnData object.
+    :param batch_key: Key in adata.obs containing batch information.
+    :param label_key: Key in adata.obs containing cell type information.
+    :param embed: Key in adata.obsm containing the embedding.
+    :param k0: Number of nearest neighbors for iLISI computation.
+    :param metric: Distance metric for nearest neighbor computation.
+    :param subsample: Percentage of observations used for LISI subsampling.
+    :param scale: Whether to scale the score between 0 and 1.
+    :param n_cores: Number of cores used for LISI computation.
+    :param verbose: Whether to print progress messages.
+    :param return_all: Whether to return scores for all cell types.
+    :return: Mean CiLISI score, or scores for all cell types if return_all is True.
     """
     check_adata(adata)
     check_batch(batch_key, adata.obs)

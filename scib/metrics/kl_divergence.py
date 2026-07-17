@@ -50,4 +50,5 @@ def kl_divergence(
         kl = scipy.stats.entropy(local_dist + 1e-10, global_dist + 1e-10)
         kl_list.append(kl)
 
+    # TODO: flip this sign
     return float(np.mean(kl_list))

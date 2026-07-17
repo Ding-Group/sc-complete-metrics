@@ -20,7 +20,7 @@ def crossfold_knn(adata, label_key, embed, n_splits: int = 5, n_neighbors: int =
     check_batch(label_key, adata.obs)
 
     X = adata.obsm[embed]
-    y = adata.obs[label_key].to_numpy()
+    y = adata.obs[label_key].astype('category').cat.codes.to_numpy()
 
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
     acc_scores = []

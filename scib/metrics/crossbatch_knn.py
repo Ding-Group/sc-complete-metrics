@@ -5,7 +5,9 @@ import numpy as np
 from ..utils import check_adata, check_batch
 
 
-def crossbatch_knn(adata, batch_key, label_key, embed, n_neighbors: int = 21, metric: str = "euclidean"):
+def crossbatch_knn(
+    adata, batch_key, label_key, embed, n_neighbors: int = 21, metric: str = "euclidean"
+):
     """Cross-batch k-NN classifier
 
     Train classifier on all but one batch, test on the held out one.
@@ -22,7 +24,7 @@ def crossbatch_knn(adata, batch_key, label_key, embed, n_neighbors: int = 21, me
     check_batch(batch_key, adata.obs)
 
     X = adata.obsm[embed]
-    y = adata.obs[label_key].to_numpy()
+    y = adata.obs[label_key].astype("category").cat.codes.to_numpy()
     batch = adata.obs[batch_key].astype("category").cat.codes.to_numpy()
 
     unique_batches = np.unique(batch)

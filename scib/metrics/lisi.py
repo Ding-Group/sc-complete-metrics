@@ -44,10 +44,10 @@ def ilisi_graph(
     use_rep: str = "X_emb",
     k0: int = 90,
     metric: str = "euclidean",
-    subsample=None,
-    scale=True,
-    n_cores=1,
-    verbose=False,
+    subsample: int = None,
+    scale: bool = True,
+    n_cores: int = 1,
+    verbose: bool = False,
     return_all: bool = False,
 ):
     """Integration LISI (iLISI) score
@@ -127,10 +127,10 @@ def clisi_graph(
     batch_key: str = None,
     k0: int = 90,
     metric: str = "euclidean",
-    subsample=None,
-    scale=True,
-    n_cores=1,
-    verbose=False,
+    subsample: int = None,
+    scale: bool = True,
+    n_cores: int = 1,
+    verbose: bool = False,
     return_all: bool = False
 ):
     """Cell-type LISI (cLISI) score
@@ -219,7 +219,7 @@ def recompute_knn(adata, type_, use_rep="X_emb", metric="euclidean"):
         # if knn - do not compute a new neighbourhood graph (it exists already)
         # unless you want to change the knn distance metric
         if metric != "euclidean":
-            sc.pp.neighbors(adata, n_neighbors=15, use_rep=use_rep, metric=metric, copy=True)
+            return sc.pp.neighbors(adata, n_neighbors=15, use_rep=use_rep, metric=metric, copy=True)
         return adata.copy()
 
 

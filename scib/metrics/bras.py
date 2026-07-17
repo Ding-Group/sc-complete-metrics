@@ -10,10 +10,19 @@ def bras(
     metric: str = "cosine",
     between_cluster_distances: str = "mean_other"
 ):
-    """BRAS
+    """BRAS.
 
     Wrapper around BRAS from scib-metrics, as defined in
     Rautenstrauch & Ohler.
+
+    :param adata: AnnData object.
+    :param label_key: Key in adata.obs containing cell type information.
+    :param batch_key: Key in adata.obs containing batch information.
+    :param embed: Key in adata.obsm containing the embedding.
+    :param chunk_size: Chunk size for BRAS computation.
+    :param metric: Distance metric for BRAS computation.
+    :param between_cluster_distances: Method for computing between-cluster distances.
+    :return: BRAS score.
     """
     X = adata.obsm[embed]
     labels = adata.obs[label_key]

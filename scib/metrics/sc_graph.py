@@ -296,6 +296,8 @@ def calculate_trimmed_means(X, labels, trim_proportion=0.2, ignore_=[]):
 # Copied from https://github.com/Genentech/Islander/blob/main/src/Utils_Handler.py
 def compute_classwise_distances(centroids, metric: str = "euclidean"):
     centroid_vectors = np.array([centroids[key] for key in sorted(centroids.keys())])
+    if metric == 'l1':
+        metric = 'cityblock'
     distances = cdist(centroid_vectors, centroid_vectors, metric)
     return pd.DataFrame(
         distances, columns=sorted(centroids.keys()), index=sorted(centroids.keys())

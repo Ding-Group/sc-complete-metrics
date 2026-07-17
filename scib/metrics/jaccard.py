@@ -1,8 +1,8 @@
 import pandas as pd
+from sklearn.cluster import KMeans
 from sklearn.metrics import jaccard_score
 
 from ..utils import check_adata, check_batch
-
 
 # Source: https://github.com/theislab/cross_system_integration/tree/e2958d3f18aa2971d1cb9dd7e191e998d0969678
 
@@ -34,3 +34,11 @@ def jaccard_index(adata, label_key, cluster_key):
     labels_df['labels_pred']=labels_df['clusters'].map(cluster_map)
 
     return jaccard_score(labels_df['labels'], labels_df['labels_pred'], average='micro')
+
+
+def jaccard_kmeans(adata, label_key, embed, key_added='kmeans'):
+    """Version of Jaccard where number of clusters fixed by KMeans"""
+    kmeans = KMeans(n_clusters=adata.obs[label_key].nunique(), random_state=0).fit(adata.obsm[embed])
+    adata.obs[key_added] = kmeans
+
+    return jaccard_score(adata.obs[label_key], adata.obs[key_added], average='micro')

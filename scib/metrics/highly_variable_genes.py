@@ -15,8 +15,14 @@ from ..utils import split_batches
 
 
 def precompute_hvg_batch(adata, batch, features, n_hvg=500, save_hvg=False):
-    """
-    Compute HVGs per batch
+    """Compute highly variable genes per batch.
+
+    :param adata: AnnData object.
+    :param batch: Key in adata.obs containing batch information.
+    :param features: Features used when splitting batches.
+    :param n_hvg: Number of highly variable genes to compute per batch.
+    :param save_hvg: Whether to save highly variable genes in adata.uns.
+    :return: Dictionary of highly variable genes per batch if save_hvg is False.
     """
     adata_list = split_batches(adata, batch, hvg=features)
     hvg_dir = {}
@@ -39,17 +45,23 @@ def precompute_hvg_batch(adata, batch, features, n_hvg=500, save_hvg=False):
 
 @renamed_arg("batch", "batch_key")
 def hvg_overlap(adata_pre, adata_post, batch_key, n_hvg=500, verbose=False):
+    """Highly variable gene overlap metric.
+
+    :param adata_pre: AnnData object before integration.
+    :param adata_post: AnnData object after integration.
+    :param batch_key: Key in adata.obs containing batch information.
+    :param n_hvg: Number of highly variable genes to compute per batch.
+    :param verbose: Whether to print progress messages.
+    :return: Mean highly variable gene overlap across batches.
     """
-    Highly variable gene overlap metric
-    """
-    # 用后验的 var_names 作为特征集
+   
     hvg_post = adata_post.var_names
 
-    # 切分 adata_post
+    
     adata_post_list = split_batches(adata_post, batch_key)
     overlap = []
 
-    # 预计算每个 batch 对应的高变基因列表
+    
     hvg_pre_list = precompute_hvg_batch(
         adata_pre, batch_key, hvg_post, n_hvg=n_hvg
     )

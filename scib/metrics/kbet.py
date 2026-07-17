@@ -274,7 +274,7 @@ def calc_kBET_across_labels(
     k: int = 70,
     alpha: float = 0.05,
     metric: str = "euclidean",
-    n_jobs: int = -1,
+    n_jobs: int = 1,
     temp_folder: str = None,
     return_means: bool = True
 ) -> Tuple[float]:
@@ -323,7 +323,7 @@ def calc_kBET_across_labels(
             k0 = np.floor(size_max / adata_sub.n_obs).astype("int")
 
         stat_mean, pvalue_mean, accept_rate = calc_kBET(
-            adata_sub, batch_key, embed, k=k0, alpha=alpha, n_jobs=n_jobs, temp_folder=temp_folder
+            adata_sub, batch_key, embed, k=k0, alpha=alpha, metric=metric, n_jobs=n_jobs, temp_folder=temp_folder
         )
         kBET_scores["cluster"].append(clus)
         kBET_scores["stat_mean"].append(stat_mean)
@@ -343,7 +343,7 @@ def calc_kBET(
     k: int = 25,
     alpha: float = 0.05,
     metric: str = 'euclidean',
-    n_jobs: int = -1,
+    n_jobs: int = 1,
     temp_folder: str = None,
 ) -> Tuple[float]:
     """Calculate the kBET metric of the data regarding a specific sample attribute and embedding.

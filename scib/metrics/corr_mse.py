@@ -6,6 +6,13 @@ from ..utils import check_adata, check_batch
 #     return np.mean((y_pred - y_true)**2)
 
 def chunked_corr_mse(X1, X2, chunk_size=5000):
+    """Compute MSE between row-wise correlation matrices in chunks.
+
+    :param X1: First input matrix.
+    :param X2: Second input matrix.
+    :param chunk_size: Number of rows processed in each chunk.
+    :return: Mean squared error between row-wise correlation matrices.
+    """
     # 1. Standardize rows (mean=0, std=1) for correlation calculation
     def standardize(X):
         return (X - X.mean(axis=1, keepdims=True)) / X.std(axis=1, ddof=1, keepdims=True)
@@ -31,13 +38,14 @@ def corr_mse(adata_pre, adata_post, batch_key, embed_post, embed_pre='X_pca'):
 
     From Yi et al., 2025 (Benchmarking deep learning methods for
     biologically conserved single-cell integration)
-    
+
     :param adata_pre: Pre-integration AnnData.
     :param adata_post: Post-integration AnnData.
     :param batch_key: Key in both AnnData .obs with batch information
     :param embed_post: Post-integration embedding key in adata_post.obsm.
     :param embed_pre: Pre-integration embedding key in adata_pre.obsm.
     """
+    check_adata(adata_post)
     check_batch(batch_key, adata_pre.obs)
     check_batch(batch_key, adata_post.obs)
 

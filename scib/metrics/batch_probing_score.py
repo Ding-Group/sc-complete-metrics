@@ -10,6 +10,70 @@ from sklearn.preprocessing import StandardScaler
 
 from ..utils import check_adata, check_batch
 
+
+def per_label_batch_probing_score(
+    adata,
+    label_key,
+    batch_key,
+    embed,
+    weighted: bool = True,
+    min_cells: int = 100,
+    default_preprocess: bool = False,
+    n_jobs=-1,
+    n_estimators=100,
+    max_depth=10,
+    max_iter=100
+):
+    """Batch probing score per cell type
+    
+    :param adata: AnnData object.
+    :param label key: Key in adata.obs containing cell type information.
+    :param batch_key: Key in adata.obs containing batch information.
+    :param embed: Key in adata.obsm containing the embedding.
+    :param weighted: Whether to return a weighted average across cell types or uniform average.
+    :param min_cells: Number of minimum cells in a cell type to compute batch probing score.
+    :param default_preprocess: Whether to standardize and truncate the embedding before scoring.
+    :param n_jobs: Number of parallel jobs for model fitting.
+    :param n_estimators: Number of trees for the random forest classifier.
+    :param max_depth: Maximum depth of the random forest classifier.
+    :param max_iter: Maximum number of iterations for logistic regression.
+    :return: BPS-RF and BPS-LR scores.
+    """
+    rfs, lrs = [], []
+    weights = []
+    for label in np.unique(adata.obs[label_key]):
+        adata_subset = adata[adata.obs[label_key] == label].copy()
+
+        if len(np.unique(adata_subset.obs[batch_key])) < 2:
+            print(f"Skipping {label} as it has <2 batches")
+            continue
+        if adata_subset.n_obs < min_cells:
+            print(f"Skipping {label} as it has <{min_cells} cells")
+            continue
+
+        rf, lr = batch_probing_score(
+            adata_subset,
+            batch_key,
+            embed,
+            default_preprocess=default_preprocess,
+            n_jobs=n_jobs,
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            max_iter=max_iter
+        )
+        if np.isnan(rf) or np.isnan(lr):
+            continue
+        rfs.append(rf)
+        lrs.append(lr)
+
+        if weighted:
+            weights.append(adata_subset.n_obs / adata.n_obs)
+        else:
+            weights.append(1)
+
+    return np.average(rfs, weights=weights), np.average(lrs, weights=weights)
+
+
 # SOURCE: https://github.com/codicef/BPS/blob/main/src/bps.py
 def batch_probing_score(
     adata,
@@ -21,20 +85,19 @@ def batch_probing_score(
     max_depth=10,
     max_iter=100,
 ):
-    """Batch Probing Score
+    """Batch probing score.
 
-    Computes BPS-RF and BPS-LR metrics for the given dataset.
-    Modification: since we use embeddings rather than gene expression for BPS,
-    default_preprocess is default False.
+    Computes BPS-RF and BPS-LR metrics for the given embedding.
 
-    Parameters:
-    - adata: AnnData.
-    - batches: Labels (batch information).
-    - embed: Key in adata.obsm with integrated embedding.
-
-    Returns:
-    - BPS_RF: BPS-RF score.
-    - BPS_LR: BPS-LR score.
+    :param adata: AnnData object.
+    :param batch_key: Key in adata.obs containing batch information.
+    :param embed: Key in adata.obsm containing the embedding.
+    :param default_preprocess: Whether to standardize and truncate the embedding before scoring.
+    :param n_jobs: Number of parallel jobs for model fitting.
+    :param n_estimators: Number of trees for the random forest classifier.
+    :param max_depth: Maximum depth of the random forest classifier.
+    :param max_iter: Maximum number of iterations for logistic regression.
+    :return: BPS-RF and BPS-LR scores.
     """
     check_adata(adata)
     check_batch(batch_key, adata.obs)
@@ -76,9 +139,13 @@ def batch_probing_score(
 
 
 def safe_truncate(X, lower_percentile=1, upper_percentile=99):
-    '''
-    Truncates the values in X to the specified percentiles.
-    '''
+    """Truncate values to the specified percentiles.
+
+    :param X: Input matrix.
+    :param lower_percentile: Lower percentile used for clipping.
+    :param upper_percentile: Upper percentile used for clipping.
+    :return: Clipped matrix.
+    """
     lower_bound = np.percentile(X, lower_percentile, axis=0)
     upper_bound = np.percentile(X, upper_percentile, axis=0)
     X_clipped = np.clip(X, lower_bound, upper_bound)

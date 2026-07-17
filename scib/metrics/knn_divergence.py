@@ -63,4 +63,6 @@ def knn_divergence(adata, label_key, batch_key, embed, min_cells=30):
                     print(div_ent_code[idx1_mutual, :])
 
     div_score = (sum(div_pq) / len(div_pq) + sum(div_qp) / len(div_qp)) / 2
+
+    # TODO: Flip this sign
     return div_score

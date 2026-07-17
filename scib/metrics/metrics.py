@@ -15,7 +15,7 @@ from .ari import ari, ari_fixed
 from .bAMI import bAMI
 from .bARI import bARI
 from .batch_ari import batch_ari
-from .batch_probing_score import batch_probing_score
+from .batch_probing_score import batch_probing_score, per_label_batch_probing_score
 from .bras import bras
 from .bv_measure import bv_measure
 from .calinski_harabasz import calinski_harabasz
@@ -40,8 +40,7 @@ from .highly_variable_genes import hvg_overlap
 from .homogeneity import homogeneity
 from .isolated_labels import isolated_labels, isolated_labels_lisi
 from .jaccard import jaccard_index
-from .kbet import kBET, calc_kBET, calc_kBET_across_labels
-from .kl_cluster import kl_cluster
+from .kbet import calc_kBET, calc_kBET_across_labels
 from .kl_divergence import kl_divergence
 from .knn_divergence import knn_divergence
 from .ksim import ksim
@@ -54,7 +53,7 @@ from .morans_i import morans_i
 from .nmi import nmi, nmi_fixed
 from .nnmap import nnmap
 from .over_correction import over_correction
-from .pcr import pcr_comparison
+from .pcr import pcr_comparison, per_label_pcr_comparison
 from .pptpc import pptpc
 from .pstdb import pstdb
 from .purity import purity, batch_purity
@@ -160,6 +159,7 @@ def metrics(
     bari_=False,
     batchari_=False,
     probe_=False,
+    cprobe_=False,
     bps_=False,
     bras_=False,
     bvm_=False,
@@ -189,6 +189,7 @@ def metrics(
     isolisi_=False,
     jacc_=False,
     kbet_=False,
+    kbetall_=False,
     kldiv_=False,
     knndiv_=False,
     ksim_=False,
@@ -204,6 +205,7 @@ def metrics(
     nnmap_=False,
     ocs_=False,
     pcr_=False,
+    cpcr_=False,
     pptpc_=False,
     pstdb_=False,
     purity_=False,
@@ -256,17 +258,19 @@ def metrics(
             layers=adata.layers,
         )
 
+    force = False
     if all_cluster_ and metric_kwargs.get('all_cluster_kwargs'):
         # Recalculate the nearest neighbor graph using the metric
         # if the distance metric is not Euclidean
         params = metric_kwargs['all_cluster_kwargs']
         if params.get('metric', 'euclidean') != 'euclidean':
-            sc.pp.neighbors(adata_int, metric=params['metric'])
+            sc.pp.neighbors(adata_int, metric=params['metric'], use_rep=embed)
+            force = True
 
     if nmi_ or all_cluster_:
         print("NMI...")
         _, nmi_score = cluster_optimal_resolution(
-            adata_int, label_key=label_key, cluster_key=cluster_key, metric=nmi
+            adata_int, label_key=label_key, cluster_key=cluster_key, metric=nmi, force=force
         )
     else:
         nmi_score = np.nan
@@ -327,6 +331,15 @@ def metrics(
         )
     else:
         pcr_score = np.nan
+    
+    if cpcr_:
+        print("Per cell type PC regression...")
+        cpcr_score = per_label_pcr_comparison(
+            adata, adata_int, label_key, batch_key, embed=embed
+        )
+    else:
+        cpcr_score = np.nan
+
 
     if ccc_:
         print("cell cycle effect...")
@@ -390,7 +403,7 @@ def metrics(
         print("Isolated labels CLISI...")
         isolisi_kwargs = metric_kwargs.get("isolisi_kwargs", {})
         if isolisi_kwargs.get('metric', 'euclidean') != 'euclidean':
-            sc.pp.neighbors(adata_int, metric=params['metric'])
+            sc.pp.neighbors(adata_int, metric=isolisi_kwargs['metric'], use_rep=embed)
         il_score_lisi = isolated_labels_lisi(
             adata_int,
             label_key=label_key,
@@ -457,6 +470,16 @@ def metrics(
         kbet_score = np.nan
         kbet_no_label_score = np.nan
 
+    if not kbet_ and kbetall_:
+        kbet_kwargs = convert_values(
+            metric_kwargs.get("kbetall_kwargs", {}), calc_kBET
+        )
+        _, _, kbet_no_label_score = calc_kBET(
+            adata_int, batch_key, embed, **kbet_kwargs
+        )
+    else:
+        kbet_no_label_score = np.nan
+
     if clisi_:
         print("cLISI score...")
         clisi_kwargs = convert_values(metric_kwargs.get("clisi_kwargs", {}), clisi_graph)
@@ -465,6 +488,7 @@ def metrics(
             batch_key=batch_key,
             label_key=label_key,
             type_="knn",
+            use_rep=embed,
             scale=True,
             verbose=verbose,
             **clisi_kwargs,
@@ -480,6 +504,7 @@ def metrics(
             batch_key=batch_key,
             type_="knn",
             scale=True,
+            use_rep=embed,
             verbose=verbose,
             **ilisi_kwargs,
         )
@@ -680,7 +705,7 @@ def metrics(
         print("ARI fixed...")
         arif_kwargs = metric_kwargs.get("arif_kwargs", {})
         if arif_kwargs.get('metric', 'euclidean') != 'euclidean':
-            sc.pp.neighbors(adata_int, metric=params['metric'])
+            sc.pp.neighbors(adata_int, metric=arif_kwargs['metric'], use_rep=embed)
         arif_score = ari_fixed(adata_int, label_key, cluster_key, embed=embed)
     else:
         arif_score = np.nan
@@ -714,6 +739,12 @@ def metrics(
         bps_rf, bps_lr = batch_probing_score(adata_int, batch_key, embed)
     else:
         bps_rf = bps_lr = np.nan
+
+    if cprobe_:
+        print("Per cell type batch probing score...")
+        cprobe_rf, cprobe_lr = per_label_batch_probing_score(adata_int, label_key, batch_key, embed)
+    else:
+        cprobe_rf = cprobe_lr = np.nan
 
     if ch_ or all_cluster_:
         print("Calinkski Harabasz score...")
@@ -917,7 +948,7 @@ def metrics(
         print("NMI fixed...")
         nmif_kwargs = metric_kwargs.get("nmif_kwargs", {})
         if nmif_kwargs.get('metric', 'euclidean') != 'euclidean':
-            sc.pp.neighbors(adata_int, metric=params['metric'])
+            sc.pp.neighbors(adata_int, metric=nmif_kwargs['metric'], use_rep=embed)
         nmi_fixed_score = nmi_fixed(adata_int, label_key, cluster_key)
     else:
         nmi_fixed_score = np.nan
@@ -1014,6 +1045,9 @@ def metrics(
         "PROBERF": bps_rf,
         "PROBELR": bps_lr,
         "PROBEMIN": np.min([bps_rf, bps_lr]),
+        "CPROBE": (cprobe_rf + cprobe_lr) / 2,
+        "CPROBERF": cprobe_rf,
+        "CPROBELR": cprobe_lr,
         "BATCHARI": batch_ari_score,
         "BPS": batch_purity_score,
         "BCENTROPY": batch_shannon_entropy_score,
@@ -1062,6 +1096,7 @@ def metrics(
         "NNMAP": nnmap_score,
         "OCS": oc_score,
         "PCR": pcr_score,
+        "CPCR": cpcr_score,
         "PPTPC": pptpc_score,
         "PSTDB": pstdb_score,
         "PURITY": purity_score,

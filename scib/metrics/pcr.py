@@ -6,6 +6,79 @@ from scipy import sparse
 from ..utils import check_adata, check_batch
 
 
+def per_label_pcr_comparison(
+    adata_pre,
+    adata_post,
+    label_key: str,
+    batch_key: str,
+    embed=None,
+    min_cells: int = 100,
+    n_comps: int = 50,
+    linreg_method: str = "numpy",
+    recompute_pca: bool = False,
+    scale: bool = True,
+    verbose: bool = False,
+    n_threads: int = 1,
+    weighted: bool = True
+):
+    """Principal component regression averaged across cell types
+    This presumes that you are computing PCR for batch correction.
+
+    :param adata_pre: anndata object before integration
+    :param adata_post: anndata object after integration
+    :param covariate: Key for ``adata_post.obs`` column to regress against
+    :param embed: Embedding to use for principal component analysis.
+        If None, use the full expression matrix (``adata_post.X``), otherwise use the embedding
+        provided in ``adata_post.obsm[embed]``.
+    :param min_cells: Minimum number of cells in a cell type to calculate the PCR
+    :param n_comps: Number of principal components to compute
+    :param recompute_pca: Whether to recompute PCA with default settings
+    :param linreg_method: Method for linear regression, either 'sklearn' or 'numpy'
+    :param scale: If True, scale score between 0 and 1 (default)
+    :param verbose:
+    :param weighted: Whether to return a weighted average across cell types or uniform average
+    :return:
+        Difference of variance contribution of PCR (scaled between 0 and 1 by default)
+    """
+    if not adata_pre.obs.index.equals(adata_post.obs.index):
+        raise ValueError("Expect adata_pre and adata_post to have the same observations in the same order")
+
+    pcrs = []
+    weights = []
+    for label in np.unique(adata_pre.obs[label_key]):
+        adata_pre_subset = adata_pre[adata_pre.obs[label_key] == label].copy()
+
+        if len(np.unique(adata_pre_subset.obs[batch_key])) < 2:
+            print(f"Skipping {label} as it has <2 batches.")
+            continue
+        if adata_pre_subset.n_obs < min_cells:
+            print(f"Skipping {label} as it has <{min_cells} cells")
+            continue
+
+        adata_post_subset = adata_post[adata_post.obs[label_key] == label].copy()
+
+        pcrs.append(
+            pcr_comparison(
+                adata_pre_subset,
+                adata_post_subset,
+                batch_key,
+                embed,
+                n_comps,
+                linreg_method,
+                recompute_pca,
+                scale,
+                verbose,
+                n_threads
+            )
+        )
+
+        if weighted:
+            weights.append(adata_pre_subset.n_obs / adata_pre.n_obs)
+        else:
+            weights.append(1)
+    return np.average(pcrs, weights = weights)
+
+
 def pcr_comparison(
     adata_pre,
     adata_post,

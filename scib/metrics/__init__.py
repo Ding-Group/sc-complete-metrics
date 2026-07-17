@@ -8,7 +8,7 @@ from .ari import ari, ari_fixed
 from .bAMI import bAMI
 from .bARI import bARI
 from .batch_ari import batch_ari
-from .batch_probing_score import batch_probing_score
+from .batch_probing_score import batch_probing_score, per_label_batch_probing_score
 from .bras import bras
 from .bv_measure import bv_measure
 from .calinski_harabasz import calinski_harabasz
@@ -48,7 +48,7 @@ from .morans_i import morans_i, sub_variable_genes
 from .nmi import nmi, nmi_fixed
 from .nnmap import nnmap
 from .over_correction import over_correction
-from .pcr import pcr_comparison
+from .pcr import pcr_comparison, per_label_pcr_comparison
 from .pptpc import pptpc
 from .pstdb import pstdb
 from .purity import purity, batch_purity
@@ -131,6 +131,8 @@ __all__ = [
     "nmi_fixed",
     "nnmap",
     "over_correction",
+    "per_label_pcr_comparison",
+    "per_label_batch_probing_score",
     "pcr_comparison",
     "pptpc",
     "pstdb",
