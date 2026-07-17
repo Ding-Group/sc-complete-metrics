@@ -83,6 +83,11 @@ def final_metrics(
     kmeans_resolutions=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0],
     metric_kwargs=dict()
 ):
+    # Check if pseudotime is something that is calculated.
+    # If so, add traj_.
+    traj_key = metric_kwargs.get('traj_kwargs', {}).get('pseudotime_key', 'dpt_pseudotime')
+    traj_ = traj_key in adata.obs.columns
+
     return metrics(
         adata,
         adata_int,
@@ -95,6 +100,14 @@ def final_metrics(
         verbose=verbose,
         leiden_resolutions=leiden_resolutions,
         kmeans_resolutions=kmeans_resolutions,
+        bami_=True,
+        casw_=True,
+        kbet_=True,
+        scgraphm_=True,
+        cpcr_=True,
+        bras_=True,
+        isolisi_=True,
+        traj_ = traj_,
         metric_kwargs=metric_kwargs
     )
 
@@ -547,10 +560,12 @@ def metrics(
 
     if traj_:
         print("Trajectory conservation score...")
+        traj_kwargs = convert_values(metric_kwargs.get("traj_kwargs", {}), trajectory_conservation)
         trajectory_score = trajectory_conservation(
             adata,
             adata_int,
             label_key=label_key,
+            **traj_kwargs
         )
     else:
         trajectory_score = np.nan

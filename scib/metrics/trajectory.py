@@ -8,7 +8,7 @@ from .utils import RootCellError
 
 
 def trajectory_conservation(
-    adata_pre, adata_post, label_key, pseudotime_key="dpt_pseudotime", batch_key=None
+    adata_pre, adata_post, label_key, pseudotime_key: str = "dpt_pseudotime", batch_key: str = None
 ):
     """Trajectory conservation score
 
