@@ -69,6 +69,35 @@ from .v_measure import v_measure
 from .variation_of_information import variation_of_information
 
 
+def final_metrics(
+    adata,
+    adata_int,
+    batch_key,
+    label_key,
+    embed,
+    embed_pre="X_pca",
+    leiden_cluster_key="leiden_",
+    kmeans_cluster_key="kmeans_",
+    verbose=False,
+    leiden_resolutions=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0],
+    kmeans_resolutions=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0],
+    metric_kwargs=dict()
+):
+    return metrics(
+        adata,
+        adata_int,
+        batch_key,
+        label_key,
+        embed,
+        embed_pre=embed_pre,
+        leiden_cluster_key=leiden_cluster_key,
+        kmeans_cluster_key=kmeans_cluster_key,
+        verbose=verbose,
+        leiden_resolutions=leiden_resolutions,
+        kmeans_resolutions=kmeans_resolutions,
+        metric_kwargs=metric_kwargs
+    )
+
 def metrics(
     adata,
     adata_int,
