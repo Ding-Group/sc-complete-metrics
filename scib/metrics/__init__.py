@@ -27,6 +27,7 @@ from .crossfold_knn import crossfold_knn
 from .crossfold_logistic import crossfold_logistic
 from .davies_bouldin import davies_bouldin
 from .f1_score import f1_score_macro
+from .final_metrics import final_metrics
 from .fowlkes_mallows import fowlkes_mallows
 from .graph_connectivity import graph_connectivity
 from .highly_variable_genes import hvg_overlap
@@ -101,6 +102,7 @@ __all__ = [
     "crossfold_logistic",
     "davies_bouldin",
     "f1_score_macro",
+    "final_metrics",
     "fowlkes_mallows",
     "graph_connectivity",
     "hvg_overlap",

@@ -1,5 +1,4 @@
 import numpy as np
-from universal_divergence import estimate
 
 
 # https://github.com/txWang/BERMUDA/blob/1e1e031b7dc59bca98a494729f151905bf05e13b/evaluate.py#L39
@@ -14,6 +13,8 @@ def knn_divergence(adata, label_key, batch_key, embed, min_cells=30):
     :param embed: Key in adata.obsm with integrated embedding.
     :param min_cells: Minimum number of cells for estimation.
     """
+    from universal_divergence import estimate
+
     div_ent_code = adata.obsm[embed]
     cell_labels = np.asarray(adata.obs[label_key])
     batches = np.asarray(adata.obs[batch_key])
@@ -65,4 +66,4 @@ def knn_divergence(adata, label_key, batch_key, embed, min_cells=30):
     div_score = (sum(div_pq) / len(div_pq) + sum(div_qp) / len(div_qp)) / 2
 
     # TODO: Flip this sign
-    return div_score
+    return -div_score

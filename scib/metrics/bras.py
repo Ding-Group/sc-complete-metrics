@@ -1,6 +1,3 @@
-from scib_metrics import bras as bras_
-
-
 def bras(
     adata,
     label_key,
@@ -10,6 +7,7 @@ def bras(
     metric: str = "cosine",
     between_cluster_distances: str = "mean_other"
 ):
+    from scib_metrics import bras as bras_
     """BRAS.
 
     Wrapper around BRAS from scib-metrics, as defined in

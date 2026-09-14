@@ -121,8 +121,11 @@ def get_root(adata_pre, adata_post, ct_key, pseudotime_key="dpt_pseudotime", dpt
         csgraph=adata_post.obsp["connectivities"], directed=False, return_labels=True
     )
 
+    # Which cell type has the lowest average pseudotime
     start_clust = adata_pre.obs.groupby(ct_key)[pseudotime_key].mean().idxmin()
+    # Cells belonging to that cell type
     min_dpt = adata_pre.obs[adata_pre.obs[ct_key] == start_clust].index
+    # Restrict to largest connected component
     which_max_neigh = (
         adata_post.obs["neighborhood"]
         == adata_post.obs["neighborhood"].value_counts().idxmax()

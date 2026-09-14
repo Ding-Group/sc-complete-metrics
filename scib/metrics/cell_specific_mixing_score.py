@@ -2,7 +2,6 @@ from ..utils import check_adata
 import numpy as np
 import scanpy as sc
 import scipy.sparse as sp
-import anndata2ri
 
 
 def cell_specific_mixing_score(
@@ -61,6 +60,7 @@ def cell_specific_mixing_score(
         raise ValueError("n_dim is greater than embedding dim")
 
     try:
+        import anndata2ri
         import rpy2.robjects as ro
         from rpy2.robjects.packages import importr
         from rpy2.robjects import numpy2ri

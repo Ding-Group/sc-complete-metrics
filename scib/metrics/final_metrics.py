@@ -76,16 +76,18 @@ def final_metrics(
     label_key,
     embed,
     embed_pre="X_pca",
-    leiden_cluster_key="leiden_",
-    kmeans_cluster_key="kmeans_",
+    leiden_cluster_key="leiden",
+    kmeans_cluster_key="kmeans",
     verbose=False,
     leiden_resolutions=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0],
     kmeans_resolutions=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0],
-    metric_kwargs=dict()
+    metric_kwargs=dict(),
 ):
     # Check if pseudotime is something that is calculated.
     # If so, add traj_.
-    traj_key = metric_kwargs.get('traj_kwargs', {}).get('pseudotime_key', 'dpt_pseudotime')
+    traj_key = metric_kwargs.get("traj_kwargs", {}).get(
+        "pseudotime_key", "dpt_pseudotime"
+    )
     traj_ = traj_key in adata.obs.columns
 
     return metrics(
@@ -107,9 +109,10 @@ def final_metrics(
         cpcr_=True,
         bras_=True,
         isolisi_=True,
-        traj_ = traj_,
-        metric_kwargs=metric_kwargs
+        traj_=traj_,
+        metric_kwargs=metric_kwargs,
     )
+
 
 def metrics(
     adata,
@@ -245,7 +248,7 @@ def metrics(
         k = math.ceil(r * n_celltypes)
         if k > 1:
             kmeans_ks.add(k)
-    kmeans_ks = sorted(list(kmeans_ks))
+    kmeans_resolutions = sorted(list(kmeans_ks))
 
     if nmi_ or all_cluster_:
         print("NMI...")
@@ -264,6 +267,7 @@ def metrics(
             metric=nmi,
             resolutions=kmeans_resolutions,
             cluster_function=kmeans,
+            kwargs={"use_rep": embed},
         )
         nmi_score = max(nmi_score_leiden, nmi_score_kmeans)
     else:
@@ -272,14 +276,90 @@ def metrics(
     if ari_ or all_cluster_:
         print("ARI...")
         _, ari_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key=label_key, cluster_key=leiden_cluster_key, metric=ari, resolutions=leiden_resolutions
+            adata_int,
+            label_key=label_key,
+            cluster_key=leiden_cluster_key,
+            metric=ari,
+            resolutions=leiden_resolutions,
         )
         _, ari_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key=label_key, cluster_key=kmeans_cluster_key, metric=ari, resolutions=kmeans_resolutions, cluster_function=kmeans
+            adata_int,
+            label_key=label_key,
+            cluster_key=kmeans_cluster_key,
+            metric=ari,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            kwargs={"use_rep": embed},
         )
         ari_score = max(ari_score_leiden, ari_score_kmeans)
     else:
         ari_score = np.nan
+
+    if bari_ or all_cluster_:
+        print("Balanced ARI...")
+        _, bARI_score_leiden = cluster_optimal_resolution(
+            adata_int,
+            label_key=label_key,
+            cluster_key=leiden_cluster_key,
+            metric=bARI,
+            resolutions=leiden_resolutions,
+        )
+        _, bARI_score_kmeans = cluster_optimal_resolution(
+            adata_int,
+            label_key=label_key,
+            cluster_key=kmeans_cluster_key,
+            metric=bARI,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
+        )
+        bARI_score = max(bARI_score_leiden, bARI_score_kmeans)
+    else:
+        bARI_score = np.nan
+
+    if bami_ or all_cluster_:
+        print("Balanced AMI...")
+        _, bami_score_leiden = cluster_optimal_resolution(
+            adata_int,
+            label_key=label_key,
+            cluster_key=leiden_cluster_key,
+            metric=bAMI,
+            resolutions=leiden_resolutions,
+        )
+        _, bami_score_kmeans = cluster_optimal_resolution(
+            adata_int,
+            label_key=label_key,
+            cluster_key=kmeans_cluster_key,
+            metric=bAMI,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
+        )
+        bami_score = max(bami_score_leiden, bami_score_kmeans)
+    else:
+        bami_score = np.nan
+
+    if bvm_ or all_cluster_:
+        print("Balanced v-measure...")
+        _, bv_measure_score_leiden = cluster_optimal_resolution(
+            adata_int,
+            label_key=label_key,
+            cluster_key=leiden_cluster_key,
+            metric=bv_measure,
+            resolutions=leiden_resolutions,
+        )
+        _, bv_measure_score_kmeans = cluster_optimal_resolution(
+            adata_int,
+            label_key=label_key,
+            cluster_key=kmeans_cluster_key,
+            metric=bv_measure,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
+        )
+        bv_measure_score = max(bv_measure_score_leiden, bv_measure_score_kmeans)
+    else:
+        bv_measure_score = np.nan
 
     if casw_:
         print("Cell type silhouette score...")
@@ -337,8 +417,11 @@ def metrics(
             resolutions=kmeans_resolutions,
             cluster_function=kmeans,
             metric_kwargs=_clustasw_metric_kwargs,
+            use_rep=embed
         )
-        silhouette_cluster_score = max(silhouette_cluster_score_leiden, silhouette_cluster_score_kmeans)
+        silhouette_cluster_score = max(
+            silhouette_cluster_score_leiden, silhouette_cluster_score_kmeans
+        )
     else:
         silhouette_cluster_score = np.nan
 
@@ -560,12 +643,11 @@ def metrics(
 
     if traj_:
         print("Trajectory conservation score...")
-        traj_kwargs = convert_values(metric_kwargs.get("traj_kwargs", {}), trajectory_conservation)
+        traj_kwargs = convert_values(
+            metric_kwargs.get("traj_kwargs", {}), trajectory_conservation
+        )
         trajectory_score = trajectory_conservation(
-            adata,
-            adata_int,
-            label_key=label_key,
-            **traj_kwargs
+            adata, adata_int, label_key=label_key, **traj_kwargs
         )
     else:
         trajectory_score = np.nan
@@ -666,6 +748,7 @@ def metrics(
             metric=batch_ari,
             resolutions=kmeans_resolutions,
             cluster_function=kmeans,
+            use_rep=embed
         )
         batch_ari_score = max(batch_ari_score_leiden, batch_ari_score_kmeans)
     else:
@@ -687,6 +770,7 @@ def metrics(
             metric=batch_purity,
             resolutions=kmeans_resolutions,
             cluster_function=kmeans,
+            use_rep=embed
         )
         batch_purity_score = max(batch_purity_score_leiden, batch_purity_score_kmeans)
     else:
@@ -708,20 +792,35 @@ def metrics(
             metric=batch_shannon_entropy,
             resolutions=kmeans_resolutions,
             cluster_function=kmeans,
+            use_rep=embed
         )
-        batch_shannon_entropy_score = max(batch_shannon_entropy_score_leiden, batch_shannon_entropy_score_kmeans)
+        batch_shannon_entropy_score = max(
+            batch_shannon_entropy_score_leiden, batch_shannon_entropy_score_kmeans
+        )
     else:
         batch_shannon_entropy_score = np.nan
 
     if ccent_ or all_cluster_:
         print("Cell type Shannon entropy by cluster...")
         _, celltype_shannon_entropy_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key, leiden_cluster_key, metric=celltype_shannon_entropy, resolutions=leiden_resolutions
+            adata_int,
+            label_key,
+            leiden_cluster_key,
+            metric=celltype_shannon_entropy,
+            resolutions=leiden_resolutions,
         )
         _, celltype_shannon_entropy_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key, kmeans_cluster_key, metric=celltype_shannon_entropy, resolutions=kmeans_resolutions, cluster_function=kmeans
+            adata_int,
+            label_key,
+            kmeans_cluster_key,
+            metric=celltype_shannon_entropy,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
         )
-        celltype_shannon_entropy_score = max(celltype_shannon_entropy_score_leiden, celltype_shannon_entropy_score_kmeans)
+        celltype_shannon_entropy_score = max(
+            celltype_shannon_entropy_score_leiden, celltype_shannon_entropy_score_kmeans
+        )
     else:
         celltype_shannon_entropy_score = np.nan
 
@@ -765,51 +864,6 @@ def metrics(
     else:
         arif_score = np.nan
 
-    if bari_ or all_cluster_:
-        print("Balanced ARI...")
-        _, bARI_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key=label_key, cluster_key=leiden_cluster_key, metric=bARI, resolutions=leiden_resolutions
-        )
-        _, bARI_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key=label_key, cluster_key=kmeans_cluster_key, metric=bARI, resolutions=kmeans_resolutions, cluster_function=kmeans
-        )
-        bARI_score = max(bARI_score_leiden, bARI_score_kmeans)
-    else:
-        bARI_score = np.nan
-
-    if bami_ or all_cluster_:
-        print("Balanced AMI...")
-        _, bami_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key=label_key, cluster_key=leiden_cluster_key, metric=bAMI, resolutions=leiden_resolutions
-        )
-        _, bami_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key=label_key, cluster_key=kmeans_cluster_key, metric=bAMI, resolutions=kmeans_resolutions, cluster_function=kmeans
-        )
-        bami_score = max(bami_score_leiden, bami_score_kmeans)
-    else:
-        bami_score = np.nan
-
-    if bvm_ or all_cluster_:
-        print("Balanced v-measure...")
-        _, bv_measure_score_leiden = cluster_optimal_resolution(
-            adata_int,
-            label_key=label_key,
-            cluster_key=leiden_cluster_key,
-            metric=bv_measure,
-            resolutions=leiden_resolutions,
-        )
-        _, bv_measure_score_kmeans = cluster_optimal_resolution(
-            adata_int,
-            label_key=label_key,
-            cluster_key=kmeans_cluster_key,
-            metric=bv_measure,
-            resolutions=kmeans_resolutions,
-            cluster_function=kmeans,
-        )
-        bv_measure_score = max(bv_measure_score_leiden, bv_measure_score_kmeans)
-    else:
-        bv_measure_score = np.nan
-
     if probe_:
         print("Batch probing score...")
         bps_rf, bps_lr = batch_probing_score(adata_int, batch_key, embed)
@@ -842,6 +896,7 @@ def metrics(
             resolutions=kmeans_resolutions,
             cluster_function=kmeans,
             metric_kwargs={"embed": embed},
+            use_rep=embed
         )
         ch_score = max(ch_score_leiden, ch_score_kmeans)
     else:
@@ -869,6 +924,7 @@ def metrics(
             metric=f1_score_macro,
             resolutions=kmeans_resolutions,
             cluster_function=kmeans,
+            use_rep=embed
         )
         f1sm = max(f1sm_leiden, f1sm_kmeans)
     else:
@@ -892,6 +948,7 @@ def metrics(
             resolutions=kmeans_resolutions,
             cluster_function=kmeans,
             metric_kwargs={"embed": embed},
+            use_rep=embed
         )
         compactness_score = max(compactness_score_leiden, compactness_score_kmeans)
     else:
@@ -928,6 +985,7 @@ def metrics(
             metric=homogeneity,
             resolutions=kmeans_resolutions,
             cluster_function=kmeans,
+            use_rep=embed
         )
         homogeneity_score = max(homogeneity_score_leiden, homogeneity_score_kmeans)
     else:
@@ -936,10 +994,20 @@ def metrics(
     if fmi_ or all_cluster_:
         print("Fowlkes Mallows...")
         _, fm_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key, leiden_cluster_key, metric=fowlkes_mallows, resolutions=leiden_resolutions
+            adata_int,
+            label_key,
+            leiden_cluster_key,
+            metric=fowlkes_mallows,
+            resolutions=leiden_resolutions,
         )
         _, fm_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key, kmeans_cluster_key, metric=fowlkes_mallows, resolutions=kmeans_resolutions, cluster_function=kmeans
+            adata_int,
+            label_key,
+            kmeans_cluster_key,
+            metric=fowlkes_mallows,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
         )
         fm_score = max(fm_score_leiden, fm_score_kmeans)
     else:
@@ -948,10 +1016,20 @@ def metrics(
     if jacc_ or all_cluster_:
         print("Jaccard index...")
         _, jaccard_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key, leiden_cluster_key, metric=jaccard_index, resolutions=leiden_resolutions
+            adata_int,
+            label_key,
+            leiden_cluster_key,
+            metric=jaccard_index,
+            resolutions=leiden_resolutions,
         )
         _, jaccard_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key, kmeans_cluster_key, metric=jaccard_index, resolutions=kmeans_resolutions, cluster_function=kmeans
+            adata_int,
+            label_key,
+            kmeans_cluster_key,
+            metric=jaccard_index,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
         )
         jaccard_score = max(jaccard_score_leiden, jaccard_score_kmeans)
     else:
@@ -960,10 +1038,20 @@ def metrics(
     if mcc_ or all_cluster_:
         print("Matthews correlation coefficient")
         _, mcc_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key, leiden_cluster_key, metric=matthews_corrcoef, resolutions=leiden_resolutions
+            adata_int,
+            label_key,
+            leiden_cluster_key,
+            metric=matthews_corrcoef,
+            resolutions=leiden_resolutions,
         )
         _, mcc_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key, kmeans_cluster_key, metric=matthews_corrcoef, resolutions=kmeans_resolutions, cluster_function=kmeans
+            adata_int,
+            label_key,
+            kmeans_cluster_key,
+            metric=matthews_corrcoef,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
         )
         mcc_score = max(mcc_score_leiden, mcc_score_kmeans)
     else:
@@ -972,10 +1060,20 @@ def metrics(
     if modularity_ or all_cluster_:
         print("Modularity...")
         _, modularity_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key, leiden_cluster_key, metric=modularity, resolutions=leiden_resolutions
+            adata_int,
+            label_key,
+            leiden_cluster_key,
+            metric=modularity,
+            resolutions=leiden_resolutions,
         )
         _, modularity_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key, kmeans_cluster_key, metric=modularity, resolutions=kmeans_resolutions, cluster_function=kmeans
+            adata_int,
+            label_key,
+            kmeans_cluster_key,
+            metric=modularity,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
         )
         modularity_score = max(modularity_score_leiden, modularity_score_kmeans)
     else:
@@ -991,10 +1089,20 @@ def metrics(
     if awc_ or all_cluster_:
         print("Adjusted Wallace score...")
         _, aw_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key, leiden_cluster_key, metric=adjusted_wallace_score, resolutions=leiden_resolutions
+            adata_int,
+            label_key,
+            leiden_cluster_key,
+            metric=adjusted_wallace_score,
+            resolutions=leiden_resolutions,
         )
         _, aw_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key, kmeans_cluster_key, metric=adjusted_wallace_score, resolutions=kmeans_resolutions, cluster_function=kmeans
+            adata_int,
+            label_key,
+            kmeans_cluster_key,
+            metric=adjusted_wallace_score,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
         )
         aw_score = max(aw_score_leiden, aw_score_kmeans)
     else:
@@ -1003,10 +1111,20 @@ def metrics(
     if ami_ or all_cluster_:
         print("Adjusted mutual information")
         _, ami_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key, leiden_cluster_key, metric=ami, resolutions=leiden_resolutions
+            adata_int,
+            label_key,
+            leiden_cluster_key,
+            metric=ami,
+            resolutions=leiden_resolutions,
         )
         _, ami_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key, kmeans_cluster_key, metric=ami, resolutions=kmeans_resolutions, cluster_function=kmeans
+            adata_int,
+            label_key,
+            kmeans_cluster_key,
+            metric=ami,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
         )
         ami_score = max(ami_score_leiden, ami_score_kmeans)
     else:
@@ -1022,22 +1140,44 @@ def metrics(
     if cre_ or all_cluster_:
         print("Cluster batch entropy...")
         _, cluster_batch_entropy_score_leiden = cluster_optimal_resolution(
-            adata_int, batch_key, leiden_cluster_key, metric=cluster_batch_entropy, resolutions=leiden_resolutions
+            adata_int,
+            batch_key,
+            leiden_cluster_key,
+            metric=cluster_batch_entropy,
+            resolutions=leiden_resolutions,
         )
         _, cluster_batch_entropy_score_kmeans = cluster_optimal_resolution(
-            adata_int, batch_key, kmeans_cluster_key, metric=cluster_batch_entropy, resolutions=kmeans_resolutions, cluster_function=kmeans
+            adata_int,
+            batch_key,
+            kmeans_cluster_key,
+            metric=cluster_batch_entropy,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
         )
-        cluster_batch_entropy_score = max(cluster_batch_entropy_score_leiden, cluster_batch_entropy_score_kmeans)
+        cluster_batch_entropy_score = max(
+            cluster_batch_entropy_score_leiden, cluster_batch_entropy_score_kmeans
+        )
     else:
         cluster_batch_entropy_score = np.nan
 
     if comp_ or all_cluster_:
         print("Completeness...")
         _, completeness_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key, leiden_cluster_key, metric=completeness, resolutions=leiden_resolutions
+            adata_int,
+            label_key,
+            leiden_cluster_key,
+            metric=completeness,
+            resolutions=leiden_resolutions,
         )
         _, completeness_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key, kmeans_cluster_key, metric=completeness, resolutions=kmeans_resolutions, cluster_function=kmeans
+            adata_int,
+            label_key,
+            kmeans_cluster_key,
+            metric=completeness,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
         )
         completeness_score = max(completeness_score_leiden, completeness_score_kmeans)
     else:
@@ -1067,6 +1207,7 @@ def metrics(
             resolutions=kmeans_resolutions,
             cluster_function=kmeans,
             metric_kwargs={"embed": embed},
+            use_rep=embed
         )
         clust_dbi_score = max(clust_dbi_score_leiden, clust_dbi_score_kmeans)
     else:
@@ -1142,10 +1283,20 @@ def metrics(
     if purity_ or all_cluster_:
         print("Purity...")
         _, purity_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key, leiden_cluster_key, metric=purity, resolutions=leiden_resolutions
+            adata_int,
+            label_key,
+            leiden_cluster_key,
+            metric=purity,
+            resolutions=leiden_resolutions,
         )
         _, purity_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key, kmeans_cluster_key, metric=purity, resolutions=kmeans_resolutions, cluster_function=kmeans
+            adata_int,
+            label_key,
+            kmeans_cluster_key,
+            metric=purity,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
         )
         purity_score = max(purity_score_leiden, purity_score_kmeans)
     else:
@@ -1183,6 +1334,7 @@ def metrics(
             resolutions=kmeans_resolutions,
             cluster_function=kmeans,
             metric_kwargs={"embed": embed},
+            use_rep=embed
         )
         separation_score = max(separation_score_leiden, separation_score_kmeans)
     else:
@@ -1191,10 +1343,20 @@ def metrics(
     if vm_ or all_cluster_:
         print("V measure...")
         _, v_score_leiden = cluster_optimal_resolution(
-            adata_int, label_key, cluster_key=leiden_cluster_key, metric=v_measure, resolutions=leiden_resolutions
+            adata_int,
+            label_key,
+            cluster_key=leiden_cluster_key,
+            metric=v_measure,
+            resolutions=leiden_resolutions,
         )
         _, v_score_kmeans = cluster_optimal_resolution(
-            adata_int, label_key, cluster_key=kmeans_cluster_key, metric=v_measure, resolutions=kmeans_resolutions, cluster_function=kmeans
+            adata_int,
+            label_key,
+            cluster_key=kmeans_cluster_key,
+            metric=v_measure,
+            resolutions=kmeans_resolutions,
+            cluster_function=kmeans,
+            use_rep=embed
         )
         v_score = max(v_score_leiden, v_score_kmeans)
     else:
@@ -1216,6 +1378,7 @@ def metrics(
             metric=variation_of_information,
             resolutions=kmeans_resolutions,
             cluster_function=kmeans,
+            use_rep=embed
         )
         vi_score = max(vi_score_leiden, vi_score_kmeans)
     else:
