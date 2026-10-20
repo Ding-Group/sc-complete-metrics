@@ -53,7 +53,6 @@ from .pcr import pcr_comparison, per_label_pcr_comparison
 from .pptpc import pptpc
 from .pstdb import pstdb
 from .purity import purity, batch_purity
-from .rbet import rbet
 from .retained_knn import retained_knn
 from .sc_graph import scgraph
 from .scaled_variance import scaled_variance
