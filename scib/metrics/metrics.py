@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 
-
 from ..utils import check_adata, check_batch
 from .adgbd import adgbd
 from .adjusted_wallace_score import adjusted_wallace_score
@@ -34,6 +33,7 @@ from .crossbatch_logistic import crossbatch_logistic
 from .crossfold_knn import crossfold_knn
 from .crossfold_logistic import crossfold_logistic
 from .davies_bouldin import davies_bouldin
+from .embedding_divergence import embedding_divergence
 from .f1_score import f1_score_macro
 from .fowlkes_mallows import fowlkes_mallows
 from .graph_connectivity import graph_connectivity
@@ -42,7 +42,6 @@ from .isolated_labels import isolated_labels, isolated_labels_lisi
 from .jaccard import jaccard_index
 from .kbet import calc_kBET, calc_kBET_across_labels
 from .kl_divergence import kl_divergence
-from .embedding_divergence import embedding_divergence
 from .ksim import ksim
 from .ldf_diff import ldf_diff
 from .lisi import clisi_graph, ilisi_graph
@@ -56,7 +55,7 @@ from .over_correction import over_correction
 from .pcr import pcr_comparison, per_label_pcr_comparison
 from .pptpc import pptpc
 from .pstdb import pstdb
-from .purity import purity, batch_purity
+from .purity import batch_purity, purity
 from .retained_knn import retained_knn
 from .sc_graph import scgraph
 from .scaled_variance import scaled_variance

@@ -26,7 +26,7 @@ def purity(adata, label_key, cluster_key) -> float:
 
 
 def batch_purity(adata, batch_key, cluster_key) -> float:
-    """Batch purity
+    """Batch purity (BP)
 
     Calculates the cluster purity for batch labels.
 
