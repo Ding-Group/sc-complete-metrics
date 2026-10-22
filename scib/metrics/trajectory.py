@@ -9,7 +9,7 @@ from .utils import RootCellError
 
 def trajectory_conservation(
     adata_pre, adata_post, label_key, pseudotime_key: str = "dpt_pseudotime", batch_key: str = None
-):
+) -> float:
     """Trajectory conservation score
 
     Trajectory conservation is measured by  spearman’s rank correlation coefficient :math:`s`, between the pseudotime
@@ -27,6 +27,7 @@ def trajectory_conservation(
         Column can contain empty entries, the dataset will be subset to the cells with scores.
     :param batch_key: set to batch key if you want to compute the trajectory metric by batch. By default the batch
         information will be ignored (``batch_key=None``)
+    :return: Trajectory conservation score
 
     This function requires pseudotime values in ``.obs`` of the unintegrated object (``adata_pre``) computed per batch
     and can be applied to all integration output types.

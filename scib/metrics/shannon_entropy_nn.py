@@ -7,7 +7,7 @@ from ..utils import check_adata, check_batch
 
 
 def shannon_entropy_nn(adata, batch_key, label_key, embed, n_neighbors: int = 50, metric: str = "euclidean"):
-    """Shannon entropy
+    """Shannon entropy by neighbourhood
 
     Compute the batch and cell type Shannon entropy within each cell's
     local neighbourhood.
@@ -18,9 +18,8 @@ def shannon_entropy_nn(adata, batch_key, label_key, embed, n_neighbors: int = 50
     :param embed: Key in adata.obsm with integrated embedding,
     :param n_neighbors: Number of nearest neighbors. Default: 50
     :param metric: Distance metric for nearest neighbor computation
-    :return: Shannon entropy
+    :return: Shannon entropy for both batch and cell type
     """
-    # Basic checks
     check_adata(adata)
     check_batch(batch_key, adata.obs)
     check_batch(label_key, adata.obs)
@@ -114,15 +113,12 @@ def shannon_entropy_nn_weighted(adata, batch_key, label_key, embed, n_neighbors=
     """
     Shannon entropy weighted by distance-based Gaussian kernels (LISI-style).
     """
-    # 1. Get Neighbors and Distances
     nn = NearestNeighbors(n_neighbors=n_neighbors + 1).fit(adata.obsm[embed])
     distances, indices = nn.kneighbors(adata.obsm[embed])
     
-    # Remove self-neighbor
     distances = distances[:, 1:]
     indices = indices[:, 1:]
 
-    # Prep Labels
     batches = adata.obs[batch_key].astype("category").cat.codes.values
     labels = adata.obs[label_key].astype("category").cat.codes.values
     n_batches = len(np.unique(batches))
@@ -132,13 +128,10 @@ def shannon_entropy_nn_weighted(adata, batch_key, label_key, embed, n_neighbors=
     label_entropies = []
 
     for i in range(indices.shape[0]):
-        # 2. Get Gaussian weights P for this cell's neighborhood
         P = get_weighted_probs(distances[i], perplexity)
         
-        # Neighbor indices for this cell
         neighbor_idx = indices[i]
         
-        # 3. Aggregate probabilities by category
         # Batch Entropy
         batch_probs = np.zeros(n_batches)
         for b_idx, weight in zip(batches[neighbor_idx], P):
@@ -149,8 +142,6 @@ def shannon_entropy_nn_weighted(adata, batch_key, label_key, embed, n_neighbors=
         for l_idx, weight in zip(labels[neighbor_idx], P):
             label_probs[l_idx] += weight
 
-        # 4. Compute Shannon Entropy (Normalized)
-        # We use base 2 for consistency with your original snippet
         h_batch = entropy(batch_probs, base=2) / np.log2(n_batches) if n_batches > 1 else 0
         h_label = entropy(label_probs, base=2) / np.log2(n_labels) if n_labels > 1 else 0
         

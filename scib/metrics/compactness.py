@@ -1,17 +1,19 @@
 import numpy as np
 from sklearn.metrics import pairwise_distances
+
 from ..utils import check_adata, check_batch
 
 
-def compactness(adata, label_key, cluster_key, embed):
-    """
-    Compute the average intra-cluster distance (compactness).
+def compactness(adata, label_key, cluster_key, embed) -> float:
+    """Compactness
+    
+    Computes the average intra-cluster distance.
 
     :param adata: AnnData object
     :param label_key: (unused) Column in adata.obs with true labels
     :param cluster_key: Column in adata.obs with cluster labels
     :param embed: Key in adata.obsm containing the embedding
-    :return: Average intra-cluster distance
+    :return: Compactness score
     """
     check_adata(adata)
     check_batch(cluster_key, adata.obs)
@@ -34,7 +36,7 @@ def compactness(adata, label_key, cluster_key, embed):
         count = 0
         for i in range(n - 1):
             # pairwise distances from one point to all later points
-            d = pairwise_distances(Xi[i:i+1], Xi[i+1:], metric='euclidean')
+            d = pairwise_distances(Xi[i : i + 1], Xi[i + 1 :], metric="euclidean")
             total += d.sum()
             count += d.size
 

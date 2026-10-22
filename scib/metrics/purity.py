@@ -4,7 +4,16 @@ from sklearn.metrics.cluster import contingency_matrix
 from ..utils import check_adata, check_batch
 
 
-def purity(adata, label_key, cluster_key):
+def purity(adata, label_key, cluster_key) -> float:
+    """Purity
+
+    Calculates the cluster purity score for cell type.
+
+    :param adata: AnnData object.
+    :param label_key: Key in ``adata.obs`` for groundtruth cell type labels.
+    :param cluster_key: Key in ``adata.obs`` for cluster assignments.
+    :return: The cell type cluster purity.
+    """
     check_adata(adata)
     check_batch(cluster_key, adata.obs)
     check_batch(label_key, adata.obs)
@@ -16,7 +25,16 @@ def purity(adata, label_key, cluster_key):
     return np.sum(np.max(matrix, axis=0)) / np.sum(matrix)
 
 
-def batch_purity(adata, batch_key, cluster_key):
+def batch_purity(adata, batch_key, cluster_key) -> float:
+    """Batch purity
+
+    Calculates the cluster purity for batch labels.
+
+    :param adata: AnnData object.
+    :param batch_key: Key in ``adata.obs`` for batch labels.
+    :param cluster_key: Key in ``adata.obs`` for cluster assignments.
+    :return: the batch cluster purity.
+    """
     check_adata(adata)
     check_batch(cluster_key, adata.obs)
     check_batch(batch_key, adata.obs)

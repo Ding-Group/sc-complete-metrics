@@ -3,12 +3,13 @@ from sklearn.metrics import completeness_score
 from ..utils import check_adata, check_batch
 
 
-def completeness(adata, label_key, cluster_key):
+def completeness(adata, label_key, cluster_key) -> float:
     """Completeness
     
     :param adata: AnnData object
     :param label_key: Column in ``adata.obs`` with cell type information
     :param cluster_key: Column in ``adata.obs`` corresponding to a clustering
+    :return: Completeness score
     """
     check_adata(adata)
     check_batch(cluster_key, adata.obs)

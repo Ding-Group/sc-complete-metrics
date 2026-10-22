@@ -1,6 +1,8 @@
+import warnings
+
 import numpy as np
 import scanpy as sc
-import warnings
+
 warnings.simplefilter("ignore", FutureWarning)
 
 # FutureWarning

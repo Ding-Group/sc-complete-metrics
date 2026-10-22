@@ -1,25 +1,24 @@
-# Based on: https://github.com/theislab/atlas-feature-selection-benchmark/blob/main/bin/metric-bARI.py
-from ..utils import check_adata, check_batch
 import numpy as np
 
-def bAMI(adata, label_key, cluster_key):
+
+# Based on: https://github.com/theislab/atlas-feature-selection-benchmark/blob/main/bin/metric-bARI.py
+def bAMI(adata, label_key, cluster_key) -> float:
+    """Balanced Adjusted Mutual Information
+
+    Computes the balanced adjusted mutual information between clustering 
+    assignments and true labels from Maan et al., 2024 "Characterizing
+    the impacts of dataset imbalance on single-cell data integration".
+
+    doi:10.1038/s41587-023-02097-9.
+
+    This function wraps around ``balanced_clustering.balanced_adjusted_mutual_info()``
+    with the interface expected by :func:`scib.metrics.cluster_optimal_resolution`.
+
+    :param adata: AnnData object containing the data and annotations.
+    :param label_key: Key in adata.obs for true cell type labels.
+    :param cluster_key: Key in adata.obs for cluster assignments.
+    :return: Balanced adjusted mutual information score. Returns NaN if there is only one cluster.
     """
-    Balanced Adjusted Mutual Information (bAMI) for an AnnData object.
-
-    Parameters
-    ----------
-    adata
-        Anndata object with cluster assignments
-    cluster_key
-        Name of the column in adata.obs containing cluster assignments
-    label_key
-        Name of the column in adata.obs containing ground truth labels
-
-    Returns
-    -------
-    The bAMI score [0, 1] where 0 is no match between the pair of labels, and 1 a perfect match.
-    """
-
     from balanced_clustering import balanced_adjusted_mutual_info
 
     clusters = adata.obs[cluster_key].to_numpy()

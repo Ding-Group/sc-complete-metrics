@@ -16,7 +16,7 @@ from ..utils import check_adata, check_batch
 @renamed_arg("group1", "cluster_key")
 @renamed_arg("group2", "label_key")
 @renamed_arg("method", "implementation")
-def nmi(adata, cluster_key, label_key, implementation="arithmetic", nmi_dir=None):
+def nmi(adata, cluster_key, label_key, implementation="arithmetic", nmi_dir=None) -> float:
     """Normalized mutual information
 
     The normalized mutual information is a version of the mutual information corrected by the entropy of clustering and
@@ -213,7 +213,10 @@ def nmi_fixed(
 
     Version of NMI where clustering is applied with a very high resolution.
     Clusters are then mapped onto labels based on the most prevalent
-    ground-truth label in the cluster.
+    ground-truth label in the cluster. From Hrovatin et al. 2025,
+    "Integrating single-cell RNA-seq datasets with substantial batch effects"
+
+    doi:10.1186/s12864-025-12126-3
 
     :param adata: AnnData object.
     :param label_key: Key in adata.obs containing ground-truth cell labels.
@@ -225,6 +228,7 @@ def nmi_fixed(
         defined, otherwise will be ignored
     :param resolution: Clustering resolution to use. Default: 2.0
     :param kwargs: arguments to pass to clustering function
+    :return: NMI fixed score
     """
     if cluster_function is None:
         cluster_function = sc.tl.leiden

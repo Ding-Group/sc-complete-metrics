@@ -1,25 +1,20 @@
 # Source: https://github.com/theislab/atlas-feature-selection-benchmark/blob/main/bin/metric-bARI.py
-from ..utils import check_adata, check_batch
-from .clustering import cluster_optimal_resolution
+def bARI(adata, label_key, cluster_key) -> float:
+    """Balanced Adjusted Rand Index
 
+    Computes the balanced adjusted Rand index between clustering assignments 
+    and true labels from Maan et al., 2024  "Characterizing the impacts of 
+    dataset imbalance on single-cell data integration".
 
-def bARI(adata, label_key, cluster_key):
-    """
-    Balanced Adjusted Rand Index (bARI) for an AnnData object.
-    A wrapper around `balanced_clustering.balanced_adjusted_rand_index()` with the interface expected by `scib.metrics.cluster_optimal_resolution`.
+    doi:10.1038/s41587-023-02097-9
 
-    Parameters
-    ----------
-    adata
-        Anndata object with cluster assignments
-    cluster_key
-        Name of the column in adata.obs containing cluster assignments
-    label_key
-        Name of the column in adata.obs containing ground truth labels
+    This function wraps around ``balanced_clustering.balanced_adjusted_rand_index()``
+    with the interface expected by :func:`scib.metrics.cluster_optimal_resolution`.
 
-    Returns
-    -------
-    The bARI score [0, 1] where 0 is no match between the pair of labels, and 1 a perfect match.
+    :param adata: AnnData object containing the data and annotations.
+    :param label_key: Key in adata.obs for true cell type labels.
+    :param cluster_key: Key in adata.obs for cluster assignments.
+    :return: Balanced adjusted Rand index score
     """
 
     from balanced_clustering import balanced_adjusted_rand_index

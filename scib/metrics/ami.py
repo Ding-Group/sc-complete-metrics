@@ -1,18 +1,19 @@
 from sklearn.metrics import adjusted_mutual_info_score
+
 from ..utils import check_adata, check_batch
 
 
-def ami(adata, label_key, cluster_key, average_method='arithmetic'):
+def ami(adata, label_key, cluster_key, average_method='arithmetic') -> float:
     """Adjusted Mutual Information (AMI)
 
     Computes the adjusted mutual information between clustering assignments and true labels.
 
     :param adata: AnnData object containing the data and annotations.
-    :param cluster_key: Key in adata.obs for cluster assignments.
-    :param label_key: Key in adata.obs for true cell type labels.
+    :param label_key: Key in ``adata.obs`` for groundtruth cell type labels.
+    :param cluster_key: Key in ``adata.obs`` for cluster assignments.
     :param average_method: String specifying the averaging method to use.
         Must be one of 'arithmetic' (default), 'min', 'geometric', or 'max'.
-    :return: Adjusted mutual information score (float).
+    :return: Adjusted mutual information score.
     """
     check_adata(adata)
     check_batch(cluster_key, adata.obs)

@@ -16,7 +16,7 @@ from ..utils import check_adata, check_batch
 
 @renamed_arg("group1", "cluster_key")
 @renamed_arg("group2", "label_key")
-def ari(adata, label_key, cluster_key, implementation=None):
+def ari(adata, label_key, cluster_key, implementation=None) -> float:
     """Adjusted Rand Index
 
     The adjusted rand index is a chance-adjusted rand index, which evaluates the pair-wise accuracy of clustering vs.
@@ -29,6 +29,7 @@ def ari(adata, label_key, cluster_key, implementation=None):
     :param label_key: string of column in adata.obs containing labels
     :param implementation: if set to 'sklearn', uses sklearn's implementation,
         otherwise native implementation is taken
+    :return: ARI score
 
     This function can be applied to all integration output types.
     The ``adata`` must contain cluster assignments that are based off the knn graph given or derived from the integration
@@ -97,7 +98,7 @@ def ari_fixed(
     embed=None,
     resolution: float = 2.0,
     **kwargs,
-):
+) -> float:
     """ARI fixed
 
     Version of ARI where clustering is applied with a very high resolution.
@@ -114,6 +115,7 @@ def ari_fixed(
         defined, otherwise will be ignored
     :param resolution: Clustering resolution to use. Default: 2.0
     :param kwargs: arguments to pass to clustering function
+    :return: ARI fixed score
     """
     if cluster_function is None:
         cluster_function = sc.tl.leiden

@@ -1,7 +1,6 @@
-from ..utils import check_adata
 import numpy as np
-import scanpy as sc
-import scipy.sparse as sp
+
+from ..utils import check_adata
 
 
 def cell_specific_mixing_score(
@@ -15,42 +14,30 @@ def cell_specific_mixing_score(
     unbalanced=False,
     res_name=None,
     return_per_cell=False,
-):
-    """Cell-specific mixing score (CMS) wrapper around CellMixS::cms via rpy2.
+) -> float:
+    """Cell-specific mixing score
 
-    Computes kNN in a subspace (default PCA) and compares groupwise distance
-    distributions using the K-sample Anderson-Darling test.
+    Computes the cell-specific mixing score from Lutge et al., 2022 "CellMixS: quantifying
+    and visualizing batch effects in single-cell RNA-seq data", a wrapper around ``CellMixS::cms`` via rpy2.
+    For each cell, the distances to its k nearest neighbors in the embedding are grouped by batch and the
+    groupwise distance distributions are compared with the K-sample Anderson-Darling test.
+    The score is the p-value of this test, so higher values indicate better batch mixing.
 
-    Behavior
-    --------
-    - If a reduced dimension named ``dim_red_name`` exists, use it.
-    - Else if ``r_run_pca_when_embed_missing=True``, pass expression to R and let
-      ``scater::runPCA`` compute PCA on the ``logcounts`` assay.
-    - Otherwise compute PCA in Python (Scanpy) and pass it as
-      ``reducedDim(sce, dim_red_name)``.
+    doi:10.26508/lsa.202001004
 
-    Parameters
-    ----------
-    adata : AnnData
-        Cells x genes matrix and metadata.
-    batch_key : str
-        Column in ``adata.obs`` with batch/group labels.
-    k : int
-        Number of nearest neighbors.
-    embed : str, optional
-        Key in ``adata.obsm`` for the embedding to use (default ``"X_pca"``).
-    n_dim : int, optional
-        Number of embedding dimensions to use (default all).
-    cell_min : int, optional
-        Minimum cells from each group for the AD test (default 10).
-    smooth : bool, optional
-        Smooth CMS within each neighborhood (default True).
-    unbalanced : bool, optional
-        If True, single-batch neighborhoods are set to NA (default False).
-    res_name : str or None, optional
-        Suffix for result column (``cms`` or ``cms.<res_name>``).
-    return_per_cell : bool, optional
-        If True return the per-cell vector, else return the NaN-mean.
+    :param adata: AnnData object containing the data and annotations.
+    :param batch_key: Key in adata.obs for batch labels.
+    :param embed: Key in adata.obsm for the embedding used to compute nearest neighbors.
+    :param k: Number of nearest neighbors.
+    :param n_dim: Number of embedding dimensions to use. Default: all dimensions.
+    :param cell_min: Minimum number of cells from a batch in the neighborhood for the batch to be included in
+        the test.
+    :param smooth: Whether to smooth the score within each neighborhood.
+    :param unbalanced: If True, neighborhoods containing a single batch are set to NA.
+    :param res_name: Suffix for the result column in the R object (``cms`` or ``cms.<res_name>``).
+    :param return_per_cell: If True, return the per-cell scores instead of their mean.
+    :return: Mean score across cells, ignoring NaN values, or an array of per-cell scores if
+        ``return_per_cell`` is True.
     """
     check_adata(adata)
 
@@ -62,13 +49,10 @@ def cell_specific_mixing_score(
     try:
         import anndata2ri
         import rpy2.robjects as ro
+        from rpy2.robjects import conversion, default_converter, numpy2ri
         from rpy2.robjects.packages import importr
-        from rpy2.robjects import numpy2ri
-        from rpy2.robjects import conversion, default_converter
     except Exception as e:
-        raise RuntimeError(
-            "Failure importing rpy2"
-        ) from e
+        raise RuntimeError("Failure importing rpy2") from e
 
     numpy_converter = default_converter + numpy2ri.converter + anndata2ri.converter
     with conversion.localconverter(numpy_converter):
@@ -81,25 +65,27 @@ def cell_specific_mixing_score(
 
             r.assign("k", int(k))
             r.assign("dim_red", embed)
-            r.assign('group_key', batch_key)
+            r.assign("group_key", batch_key)
             r.assign("n_dim", int(n_dim))
             r.assign("cell_min", int(cell_min))
             r.assign("smooth", bool(smooth))
             r.assign("unbalanced", bool(unbalanced))
             r.assign("res_name", ro.NULL if res_name is None else str(res_name))
-            r('bp <- BiocParallel::SerialParam()')
+            r("bp <- BiocParallel::SerialParam()")
 
             del adata.uns
             r.assign("sce", adata)
 
-            r('sce <- CellMixS::cms(sce, k = k, group = group_key, '
-            'dim_red = dim_red, n_dim = n_dim, cell_min = cell_min, '
-            'smooth = smooth, unbalanced = unbalanced, res_name = res_name, BPPARAM = bp)')
+            r(
+                "sce <- CellMixS::cms(sce, k = k, group = group_key, "
+                "dim_red = dim_red, n_dim = n_dim, cell_min = cell_min, "
+                "smooth = smooth, unbalanced = unbalanced, res_name = res_name, BPPARAM = bp)"
+            )
 
             result_col = "cms" if res_name is None else f"cms.{res_name}"
             r.assign("result_col", result_col)
             cms_vals = np.array(
-                r('as.numeric(SummarizedExperiment::colData(sce)[, result_col])'),
+                r("as.numeric(SummarizedExperiment::colData(sce)[, result_col])"),
                 dtype=float,
             )
 

@@ -6,17 +6,17 @@ from ..utils import check_adata, check_batch
 
 # Source: https://github.com/theislab/cross_system_integration/tree/e2958d3f18aa2971d1cb9dd7e191e998d0969678
 
-def jaccard_index(adata, label_key, cluster_key):
-    """
-    Compute the Jaccard Index (micro-averaged) between predicted clusters and ground truth labels.
+def jaccard_index(adata, label_key, cluster_key) -> float:
+    """Jaccard index
 
-    Parameters:
-    - adata: AnnData object
-    - cluster_key: str, column in adata.obs with predicted cluster labels
-    - label_key: str, column in adata.obs with ground truth labels
+    Computes the micro-averaged Jaccard index between clustering assignments and true labels.
+    Each cluster is first mapped to the most frequent true label among its cells (majority voting), and the
+    Jaccard index ``TP / (TP + FP + FN)`` is then computed between the true labels and the mapped labels.
 
-    Returns:
-    - Jaccard Index (float)
+    :param adata: AnnData object.
+    :param label_key: Key in ``adata.obs`` for groundtruth cell type labels.
+    :param cluster_key: Key in ``adata.obs`` for cluster assignments.
+    :return: Micro-averaged Jaccard index.
     """
     check_adata(adata)
     check_batch(cluster_key, adata.obs)
@@ -35,10 +35,3 @@ def jaccard_index(adata, label_key, cluster_key):
 
     return jaccard_score(labels_df['labels'], labels_df['labels_pred'], average='micro')
 
-
-def jaccard_kmeans(adata, label_key, embed, key_added='kmeans'):
-    """Version of Jaccard where number of clusters fixed by KMeans"""
-    kmeans = KMeans(n_clusters=adata.obs[label_key].nunique(), random_state=0).fit(adata.obsm[embed])
-    adata.obs[key_added] = kmeans
-
-    return jaccard_score(adata.obs[label_key], adata.obs[key_added], average='micro')

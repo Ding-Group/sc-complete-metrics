@@ -7,7 +7,7 @@ def separation(
     label_key,
     cluster_key,
     embed
-):
+) -> float:
     """Separation
 
     Compute the average inter-cluster distance (separation).
@@ -16,13 +16,11 @@ def separation(
     :param cluster_key: Column in adata.obs with cluster labels
     :param label_key: Column in adata.obs with cell type labels
     :param embed: Key in adata.obsm containing the embedding
-    :return: Average inter-cluster centroid distance
+    :return: Separation score
     """
-    # Basic sanity checks
     check_adata(adata)
     check_batch(cluster_key, adata.obs)
 
-    # Extract embedding and labels
     X = adata.obsm[embed]
     labels = adata.obs[cluster_key].to_numpy()
     unique_labels = np.unique(labels)

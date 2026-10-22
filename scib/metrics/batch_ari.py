@@ -1,26 +1,22 @@
-# scib/metrics/batch_ari.py
-from sklearn.metrics import adjusted_rand_score
-import pandas as pd
 import numpy as np
+import pandas as pd
+from sklearn.metrics import adjusted_rand_score
 
 from ..utils import check_adata, check_batch
+
 
 def batch_ari(adata, label_key, cluster_key) -> float:
     """Batch ARI
 
-    ARI between cluster assignments and BATCH labels.
+    Computes the adjusted Rand index between clustering assignments 
+    and batch labels instead of cell type labels. A low ARI indicates 
+    that batch labels are well mixed across clusters, so the score is 
+    reported as ``1 - ARI``.
 
-    Parameters
-    ----------
-    adata : AnnData
-    label_key : str
-        obs column containing batch labels.
-    cluster_key : str
-        obs column containing cluster labels.
-    Returns
-    -------
-    float
-        Adjusted Rand Index in [-1, 1].
+    :param adata: AnnData object containing the data and annotations.
+    :param label_key: Key in adata.obs for batch labels.
+    :param cluster_key: Key in adata.obs for cluster assignments.
+    :return: One minus the adjusted Rand index. Returns 0.0 if there is only one cluster or one batch.
     """
     check_adata(adata)
     check_batch(cluster_key, adata.obs)
@@ -38,9 +34,6 @@ def batch_ari(adata, label_key, cluster_key) -> float:
     y_pred = clusters.cat.codes.to_numpy()
     y_true = batches.cat.codes.to_numpy()
 
-    # guard empty / constant cases
-    if y_pred.size == 0 or y_true.size == 0:
-        return np.nan
     if len(np.unique(y_pred)) <= 1 or len(np.unique(y_true)) <= 1:
         return 0.0
 

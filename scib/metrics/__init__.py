@@ -17,7 +17,6 @@ from .cell_specific_mixing_score import cell_specific_mixing_score
 from .cilisi import cilisi
 from .cluster_batch_entropy import cluster_batch_entropy
 from .clustering import cluster_optimal_resolution, get_resolutions, opt_louvain
-from .clustering_accuracy import clustering_accuracy
 from .compactness import compactness
 from .completeness import completeness
 from .corr_mse import corr_mse
@@ -26,6 +25,7 @@ from .crossbatch_logistic import crossbatch_logistic
 from .crossfold_knn import crossfold_knn
 from .crossfold_logistic import crossfold_logistic
 from .davies_bouldin import davies_bouldin
+from .embedding_divergence import embedding_divergence
 from .f1_score import f1_score_macro
 from .metrics import metrics_core
 from .final_metrics import final_metrics  # deprecated alias of metrics_core, kept for reproducibility
@@ -38,7 +38,6 @@ from .jaccard import jaccard_index
 from .kbet import kBET, calc_kBET, calc_kBET_across_labels
 from .kl_cluster import kl_cluster
 from .kl_divergence import kl_divergence
-from .knn_divergence import knn_divergence
 from .ksim import ksim
 from .ldf_diff import ldf_diff
 from .lisi import clisi_graph, ilisi_graph, lisi_graph
@@ -92,7 +91,6 @@ __all__ = [
     "cluster_optimal_resolution",
     "get_resolutions",
     "opt_louvain",
-    "clustering_accuracy",
     "compactness",
     "completeness",
     "corr_mse",
@@ -116,7 +114,7 @@ __all__ = [
     "kBET",
     "kl_cluster",
     "kl_divergence",
-    "knn_divergence",
+    "embedding_divergence",
     "ksim",
     "ldf_diff",
     "clisi_graph",

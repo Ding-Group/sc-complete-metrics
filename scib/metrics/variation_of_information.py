@@ -1,14 +1,16 @@
 import numpy as np
-from sklearn.metrics import mutual_info_score
 from scipy.stats import entropy
+from sklearn.metrics import mutual_info_score
 
 
-def variation_of_information(adata, label_key, cluster_key, normalize=True):
+def variation_of_information(adata, label_key, cluster_key, normalize=True) -> float:
     """Variation of information
 
     :param adata: AnnData object.
     :param label_key: Key in adata.obs containing cell type labels.
     :param cluster_key: Key in adata.obs containing cluster labels.
+    :param normalize: Normalize to [0, 1].
+    :return: Variation of information score
     """
     labels_true = adata.obs[label_key].astype('category').cat.codes
     labels_pred = adata.obs[cluster_key].astype('category').cat.codes
@@ -17,7 +19,6 @@ def variation_of_information(adata, label_key, cluster_key, normalize=True):
         labels_true, labels_pred, bins=(np.unique(labels_true).size, np.unique(labels_pred).size)
     )[0]
 
-    # Probabilities
     Pa = contingency.sum(axis=1) / adata.n_obs
     Pb = contingency.sum(axis=0) / adata.n_obs
 

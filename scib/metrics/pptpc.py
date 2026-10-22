@@ -4,15 +4,21 @@ from sklearn.neighbors import NearestNeighbors
 from ..utils import check_adata, check_batch
 
 
-def pptpc(adata, batch_key, label_key, embed, n_neighbors: int = 100, metric: str = "euclidean"):
+def pptpc(adata, batch_key, label_key, embed, n_neighbors: int = 100, metric: str = "euclidean") -> float:
     """Proportion of Positive and True Positive Cells
+
+    From Wang et al. 2021 "iMAP: integration of multiple single-cell datasets 
+    by adversarial paired transfer networks"
+
+    doi:10.1186/s13059-021-02280-8
 
     :param adata: AnnData object.
     :param batch_key: Key in adata.obs with batch labels.
     :param label_key: Key in adata.obs with cell type labels.
     :param embed: Key in adata.obsm with integrated embedding.
     :param n_neighbors: Number of nearest neighbors per cell.
-    "param metric: Distance metric for nearest neighbor computation.
+    :param metric: Distance metric for nearest neighbor computation.
+    :return: The proportion of positive and true positive cells.
     """
     check_adata(adata)
     check_batch(batch_key, adata.obs)

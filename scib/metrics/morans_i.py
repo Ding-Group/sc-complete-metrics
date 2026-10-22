@@ -22,20 +22,23 @@ def morans_i(
 ):
     """Moran's I
 
-    Proposed by Hrovatin et al. Higher values indicate that sub-cell type
-    biological variations are conserved.
+    Proposed by Hrovatin et al. 2025 "Integrating single-cell RNA-seq 
+    datasets with substantial batch effects". Moran's I measures whether
+    gene gradients in the unintegrated data are preserved in the integrated data.
+
+    doi:10.1186/s12864-025-12126-3
 
     :param adata_pre: AnnData object prior to integration.
-    :param adata_post AnnData object with integrated embedding and nearest
+    :param adata_post: AnnData object with integrated embedding and nearest
         neighbor graph.
-    :param label_key: Key in adata.obs for cell labels.
-    :param batch_key: Key in adata.obs for desired batch labels.
-    :param embed: Key in adata.obsm with integrated embeddings.
+    :param label_key: Key in ``adata_pre.obs`` for groundtruth cell type labels.
+    :param batch_key: Key in ``adata_pre.obs`` for batch labels.
+    :param embed_pre: Key in ``adata_pre.obsm`` with integrated embeddings.
+    :param embed_post: Key in ``adata_post.obsm`` with integrated embeddings.
     :param min_cells: Minimum cells for a label x batch pair to be considered.
     :param moran_cutoff: Minimum Moran's I cutoff for gene to be included.
     :param max_genes: Maximum number of genes per label x batch pair.
     :param use_gene_score: Whether to use gene scores instead of average across genes.
-
     :return: Moran's I
     """
     check_adata(adata_pre)

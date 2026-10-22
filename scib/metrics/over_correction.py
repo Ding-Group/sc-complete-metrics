@@ -11,11 +11,9 @@ def over_correction_from_graph(labels, ind) -> float:
     Return:
       float in [0,1], higher means more over-correction
     """
-    # 1. Convert labels to numpy array
     labels = np.asarray(labels)
     n, k = ind.shape
 
-    # 2. Check dimension consistency
     if ind.shape[0] != n:
         raise ValueError("ind.shape[0] must equal number of labels")
 
@@ -34,13 +32,20 @@ def over_correction(
     n_neighbors: int = 50,
     metric: str = "euclidean"
 ) -> float:
-    """Over-correction
+    """Over-correction score
+
+    Computes the over-correction score from Xiong et al. 2022
+    "Online single-cell data integration through projecting heterogeneous 
+    datasets into a common cell-embedding space"
+
+    doi:10.1038/s41467-022-33758-z
 
     :param adata: AnnData object
     :param label_key: Key in adata.obs with cell type labels
     :param embed: Key in adata.obsm with integrated embedding.
     :param n_neighbors: Number of nearest neighbors. Default: 50.
     :param metric: Distance metric for nearest neighbor computation
+    :return: Over-correction score
     """
     if adata.n_obs < 2:
         return float("nan")

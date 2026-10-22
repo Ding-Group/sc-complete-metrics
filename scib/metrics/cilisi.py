@@ -1,5 +1,4 @@
 import numpy as np
-import scanpy as sc
 import pandas as pd
 
 from ..utils import check_adata, check_batch
@@ -13,12 +12,12 @@ def cilisi(
     embed=None,
     k0: int = 90,
     metric: str = "euclidean",
-    subsample=None,
+    subsample = None,
     scale: bool = True,
     n_cores: int = 1,
     verbose: bool = False,
     return_all: bool = False
-):
+) -> float:
     """Average iLISI per cell type.
 
     :param adata: AnnData object.

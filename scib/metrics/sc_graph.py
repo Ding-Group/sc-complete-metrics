@@ -32,8 +32,16 @@ def scgraph(
     thres_batch: int = 100,
     thres_celltype: int = 10,
     pca_comps: int = 10
-):
+) -> float:
     """scGraph
+
+    The scGraph metric that measures whether distances in the integrated
+    embedding space reflect distances in unintegrated PCA space. From
+    Wang et al. 2025 "Limitations of cell embedding metrics assessed 
+    using drifting islands". We extend the scGraph metric to using Fisher-Rao
+    distances, SCGRAPHP (Poisson) and SCGRAPHM (Multinomial)
+
+    doi:10.1038/s41587-025-02702-z
 
     :param adata: AnnData object with integrated embedding
     :param batch_key: Column in ``adata.obs`` with batch information
@@ -42,12 +50,15 @@ def scgraph(
     :param method: Which version of SCGRAPH to use
     :param metric: Distance metric to use for calculating distances in the integrated
         embedding. If ``method`` is default, ``metric`` also refers to the distance
-        metric in PCA space
+        metric in PCA space. ``'fisher_poisson'`` produces the SCGRAPHP and
+        ``'fisher_multinomial'`` produces the SCGRAPHM.
     :param trim_rate: Trim rate for trimmed mean
     :param thres_batch: Minimum number of cells in a batch for the batch to be 
         included in groundtruth distances
     :param thres_celltype: Minimum number of cells for the cell type to be
         included in SCGRAPH computation
+    :param pca_comps: Number of components to use for PCA in the unintegrated data.
+    :return: scGraph score
     """
     check_adata(adata)
     check_batch(batch_key, adata.obs)

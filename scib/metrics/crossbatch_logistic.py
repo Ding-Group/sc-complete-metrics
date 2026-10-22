@@ -1,4 +1,3 @@
-from typing import Literal
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
@@ -13,28 +12,19 @@ def crossbatch_logistic(
     embed: str,
     max_iter: int = 1000,
 ) -> float:
-    """
-    Train a logistic regression classifier on one batch and evaluate on another batch.
-    Average the score across all ordered train→test batch pairs that have at least two
-    shared classes.
+    """Cross-batch logistic regression
 
-    Parameters
-    ----------
-    adata : AnnData
-        AnnData with embeddings in .obsm[use_rep] or in .X
-    label_key : str
-        Column in .obs with biological labels (e.g., cell types)
-    batch_key : str
-        Column in .obs with batch assignments
-    embed: str
-        Key in .obsm with integrated embedding
-    max_iter : int
-        max_iter for LogisticRegression
+    Measures the ability of a logistic regression classifier to predict cell type labels of cells from one batch
+    using cells from all other batches. For each batch, a classifier is trained on the cells from all other
+    batches and evaluated on the held-out batch. If the integration does not remove batch effects, the held-out
+    cells may be out-of-distribution relative to the training data and the accuracy will be low.
 
-    Returns
-    -------
-    float
-        Mean score across valid train→test pairs, or np.nan if none are valid.
+    :param adata: AnnData object containing the data and annotations.
+    :param batch_key: Key in adata.obs for batch labels.
+    :param label_key: Key in adata.obs for true cell type labels.
+    :param embed: Key in adata.obsm for the integrated embedding.
+    :param max_iter: Maximum number of iterations for the logistic regression solver.
+    :return: Mean classification accuracy across held-out batches.
     """
     check_adata(adata)
     check_batch(batch_key, adata.obs)

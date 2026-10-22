@@ -1,12 +1,19 @@
 import numpy as np
 
 
-def adjusted_wallace_score(adata, label_key, cluster_key, direction="mean"):
+def adjusted_wallace_score(adata, label_key, cluster_key, direction="mean") -> float:
     """Adjusted Wallace Score
+
+    Computes the Adjusted Wallace score from Severiano et al., 2011
+    "Adjusted Wallace coefficient as a measure of congruence between typing methods"
+    
+    doi:10.1128/JCM.00624-11
 
     :param adata: AnnData object.
     :param label_key: Key in adata.obs containing cell type information.
     :param cluster_key: Key in adata.obs containing cluster information.
+    :param direction: Whether to return 1->2, 2->1, or the mean of the two. 
+    :return: The Adjusted Wallace score
     """
 
     labels_true = adata.obs[label_key].astype("category").cat.codes

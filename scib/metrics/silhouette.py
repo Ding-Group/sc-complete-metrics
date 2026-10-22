@@ -9,7 +9,7 @@ except ImportError:
 
 
 @renamed_arg("group_key", "label_key")
-def silhouette(adata, label_key, embed, metric: str = "euclidean", scale: bool = True):
+def silhouette(adata, label_key, embed, metric: str = "euclidean", scale: bool = True) -> float:
     """Average silhouette width (ASW)
 
     Wrapper for sklearn silhouette function values range from [-1, 1] with
@@ -20,10 +20,12 @@ def silhouette(adata, label_key, embed, metric: str = "euclidean", scale: bool =
 
     By default, the score is scaled between 0 and 1 (``scale=True``).
 
+    :param adata: AnnData object
     :param label_key: key in adata.obs of cell labels
     :param embed: embedding key in adata.obsm, default: 'X_pca'
     :param metric: type of distance metric to use for the silhouette scores
     :param scale: default True, scale between 0 (worst) and 1 (best)
+    :return: Silhouette score
 
     The function requires an embedding to be stored in ``adata.obsm`` and can only be applied to feature and embedding
     integration outputs.
@@ -64,7 +66,7 @@ def silhouette_batch(
     return_all: bool = False,
     scale: bool = True,
     verbose: bool = True,
-):
+) -> float:
     """Batch ASW
 
     Modified average silhouette width (ASW) of batch
@@ -91,6 +93,7 @@ def silhouette_batch(
 
         batch \\, ASW_j = \\frac{1}{|C_j|} \\sum_{i \\in C_j} 1 - |silhouette(i)|
 
+    :param adata: AnnData object
     :param batch_key: batch labels to be compared against
     :param label_key: group labels to be subset by e.g. cell type
     :param embed: name of column in adata.obsm
@@ -175,7 +178,19 @@ def silhouette_cluster(
     embed,
     metric: str = "euclidean",
     scale=True,
-):
+) -> float:
+    """Cluster silhouette
+
+    Computes the traditional average silhouette width given cluster labels.
+
+    :param adata: AnnData object
+    :param label_key: Unused
+    :param cluster_key: Key in ``adata.obs`` containing cluster assignments
+    :param embed: Key in ``adata.obsm`` containing integrated embeddings
+    :param metric: Distance metric for distances computation
+    :param scale: if True, scale between 0 and 1
+    :return: Cluster silhouette score
+    """
     if embed not in adata.obsm.keys():
         print(adata.obsm.keys())
         raise KeyError(f"{embed} not in obsm")

@@ -1,7 +1,6 @@
-# scib_extension/scib/metrics/alignment.py
-
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
+
 from ..utils import check_adata, check_batch
 
 
@@ -11,11 +10,11 @@ def alignment(
     embed: str,
     n_neighbors: int = None,
     metric: str = "euclidean",
-    seed: int = 0
+    seed: int = 0,
 ) -> float:
     """Alignment score
 
-    Computes the alignment score from Butler et al. "Integrating single-cell
+    Computes the alignment score from Butler et al. 2018 "Integrating single-cell
     transcriptomic data across different conditions, technologies, and species".
 
     doi:10.1038/nbt.4096
@@ -26,6 +25,8 @@ def alignment(
     :param metric: Distance metric for nearest neighbor computation
     :param n_neighbors: Number of nearest neighbors to use.
         Defaults to 1% of the number of cells.
+    :param seed: Seed for random downsampling.
+    :return: The alignment score
     """
     check_adata(adata_int)
     check_batch(batch_key, adata_int.obs)
@@ -45,7 +46,7 @@ def alignment(
 
     if n_neighbors is None:
         n_neighbors = adata_int.n_obs // 100
-    nn = NearestNeighbors(n_neighbors=n_neighbors+1, metric=metric, n_jobs=-1).fit(X)
+    nn = NearestNeighbors(n_neighbors=n_neighbors + 1, metric=metric, n_jobs=-1).fit(X)
     knn_graph = nn.kneighbors(X, return_distance=False)[:, 1:]
     scores = []
     for i, neighbors in enumerate(knn_graph):

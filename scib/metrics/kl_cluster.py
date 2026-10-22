@@ -10,7 +10,7 @@ def compute_cooccurrence_matrix(labels, batches):
     return mat
 
 
-def kl_cluster(adata, batch_key, cluster_key, label_key):
+def kl_cluster(adata, batch_key, cluster_key, label_key) -> float:
     """KL divergence cluster
 
     Assumes that the number of clusters equals the number of labels.
@@ -19,6 +19,7 @@ def kl_cluster(adata, batch_key, cluster_key, label_key):
     :param batch_key: Key in adata.obs with batch information.
     :param cluster_key: Key in adata.obs with cluster information.
     :param label_key: Key in adata.obs with cell type information.
+    :return: The cluster KL divergence score
     """
     labels = adata.obs[label_key].astype('category').cat.codes
     clusters = adata.obs[cluster_key].astype('category').cat.codes

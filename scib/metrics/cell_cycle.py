@@ -20,7 +20,7 @@ def cell_cycle(
     verbose=False,
     linreg_method="numpy",
     n_threads=1,
-):
+) -> float:
     """Cell cycle conservation score
 
     Compare the variance contribution of S-phase and G2/M-phase cell cycle scores before and

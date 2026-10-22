@@ -49,7 +49,7 @@ def ilisi_graph(
     n_cores: int = 1,
     verbose: bool = False,
     return_all: bool = False,
-):
+) -> float:
     """Integration LISI (iLISI) score
 
     Local Inverse Simpson's Index metrics adapted from `Korsunsky et al. 2019`_ to run on all full
@@ -132,7 +132,7 @@ def clisi_graph(
     n_cores: int = 1,
     verbose: bool = False,
     return_all: bool = False
-):
+) -> float:
     """Cell-type LISI (cLISI) score
 
     Local Inverse Simpson’s Index metrics adapted from `Korsunsky et al. 2019`_ to run on all full

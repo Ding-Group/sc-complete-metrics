@@ -3,14 +3,19 @@ import numpy as np
 from ..utils import check_adata, check_batch
 
 
-def scaled_variance(adata, batch_key, embed, n_comps=None):
+def scaled_variance(adata, batch_key, embed, n_comps=None) -> float:
     """Scaled variance
+
+    Variance of data from different batches across embedding dimensions,
+    from Hsu & Culhane, 2023 "Correspondence analysis for dimension reduction, 
+    batch integration, and visualization of single-cell RNA-seq data"
 
     :param adata: AnnData object.
     :param batch_key: Key in adata.obs with batch labels.
     :param embed: Key in adata.obsm with integrated embedding.
     :param n_comps: Number of dimensions to evaluate scaled variance.
         If not provided, scaled variance is evaluated across all dimensions.
+    :return: Scaled variance score
     """
     check_adata(adata)
     check_batch(batch_key, adata.obs)

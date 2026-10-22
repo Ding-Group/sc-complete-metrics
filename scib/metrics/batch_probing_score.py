@@ -1,15 +1,12 @@
-# Source: https://github.com/codicef/BPS
-
 import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import StandardScaler
 
 from ..utils import check_adata, check_batch
 
+# Source: https://github.com/codicef/BPS
 
 def per_label_batch_probing_score(
     adata,
@@ -25,9 +22,13 @@ def per_label_batch_probing_score(
     max_iter=100
 ):
     """Batch probing score per cell type
+
+    Computes the batch probing score for each cell type that has
+    at least `min_cells`. Batch probing scores are averaged across
+    cell types.
     
     :param adata: AnnData object.
-    :param label key: Key in adata.obs containing cell type information.
+    :param label_key: Key in adata.obs containing cell type information.
     :param batch_key: Key in adata.obs containing batch information.
     :param embed: Key in adata.obsm containing the embedding.
     :param weighted: Whether to return a weighted average across cell types or uniform average.
@@ -84,10 +85,14 @@ def batch_probing_score(
     n_estimators=100,
     max_depth=10,
     max_iter=100,
-):
+) -> float:
     """Batch probing score.
 
-    Computes BPS-RF and BPS-LR metrics for the given embedding.
+    Computes BPS-RF and BPS-LR metrics for the given embedding from
+    Codice et al. 2025 "Probing as a new technique to assess single-cell 
+    RNA-seq batch correction"
+
+    doi:10.1101/2025.05.12.653389
 
     :param adata: AnnData object.
     :param batch_key: Key in adata.obs containing batch information.

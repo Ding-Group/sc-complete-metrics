@@ -1,14 +1,14 @@
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score
 import numpy as np
+from sklearn.metrics import accuracy_score
+from sklearn.neighbors import KNeighborsClassifier
 
 from ..utils import check_adata, check_batch
 
 
 def crossbatch_knn(
     adata, batch_key, label_key, embed, n_neighbors: int = 21, metric: str = "euclidean"
-):
-    """Cross-batch k-NN classifier
+) -> float:
+    """Cross-batch KNN classifier
 
     Train classifier on all but one batch, test on the held out one.
     Returns average accuracy over all batch pairs.
@@ -19,6 +19,7 @@ def crossbatch_knn(
     :param embed: Key in ``adata.obsm`` with the integrated embedding
     :param n_neighbors: Number of nearest neighbors to use
     :param metric: Distance metric for nearest neighbor computation
+    :return: Mean cross-batch KNN label classification accuracy
     """
     check_adata(adata)
     check_batch(batch_key, adata.obs)

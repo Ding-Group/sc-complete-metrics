@@ -1,7 +1,9 @@
 from sklearn.metrics import fowlkes_mallows_score
+
 from ..utils import check_adata, check_batch
 
-def fowlkes_mallows(adata, label_key, cluster_key):
+
+def fowlkes_mallows(adata, label_key, cluster_key) -> float:
     """Fowlkes-Mallows score.
 
     :param adata: AnnData object.

@@ -42,7 +42,7 @@ from .isolated_labels import isolated_labels, isolated_labels_lisi
 from .jaccard import jaccard_index
 from .kbet import calc_kBET, calc_kBET_across_labels
 from .kl_divergence import kl_divergence
-from .knn_divergence import knn_divergence
+from .embedding_divergence import embedding_divergence
 from .ksim import ksim
 from .ldf_diff import ldf_diff
 from .lisi import clisi_graph, ilisi_graph
@@ -1239,9 +1239,9 @@ def metrics(
 
     if embdiv_:
         print("KNN divergence...")
-        knn_div_score = knn_divergence(adata_int, label_key, batch_key, embed)
+        emb_div_score = embedding_divergence(adata_int, label_key, batch_key, embed)
     else:
-        knn_div_score = np.nan
+        emb_div_score = np.nan
 
     if ksim_:
         print("kSIM...")
@@ -1460,7 +1460,7 @@ def metrics(
         "KBET": kbet_score,
         "KBETALL": kbet_no_label_score,
         "KLDIV": kl_div_score,
-        "EMBDIV": knn_div_score,
+        "EMBDIV": emb_div_score,
         "KSIM": ksim_score,
         "LDFDIFF": ldf_diff_score,
         "MCC": mcc_score,

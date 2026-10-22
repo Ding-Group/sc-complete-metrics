@@ -6,12 +6,14 @@ def bras(
     chunk_size: int = 256,
     metric: str = "cosine",
     between_cluster_distances: str = "mean_other"
-):
-    from scib_metrics import bras as bras_
+) -> float:
     """BRAS.
 
     Wrapper around BRAS from scib-metrics, as defined in
-    Rautenstrauch & Ohler.
+    Rautenstrauch & Ohler, 2025 "Shortcomings of silhouette in single-cell 
+    integration benchmarking"
+
+    doi:10.1038/s41587-025-02743-4
 
     :param adata: AnnData object.
     :param label_key: Key in adata.obs containing cell type information.
@@ -22,6 +24,8 @@ def bras(
     :param between_cluster_distances: Method for computing between-cluster distances.
     :return: BRAS score.
     """
+    from scib_metrics import bras as bras_
+
     X = adata.obsm[embed]
     labels = adata.obs[label_key]
     batch = adata.obs[batch_key]

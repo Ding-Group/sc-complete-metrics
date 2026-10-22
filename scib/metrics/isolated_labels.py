@@ -6,7 +6,7 @@ from sklearn.metrics import f1_score, silhouette_samples
 
 from .clustering import cluster_optimal_resolution
 from .lisi import clisi_graph
-from ..utils import EMB_KEY
+
 
 def isolated_labels_f1(
     adata,
@@ -18,7 +18,7 @@ def isolated_labels_f1(
     iso_threshold=None,
     verbose=True,
     **kwargs,
-):
+) -> float:
     """Isolated label score F1
 
     Score how well isolated labels are distinguished from other labels by data-driven clustering.
@@ -150,9 +150,20 @@ def isolated_labels_lisi(
     embed,
     iso_threshold=None,
     verbose=True,
-):
-    """
-    Compute the isolated labels LISI score.
+) -> float:
+    """Isolated label score LISI
+
+    Score how well isolated labels are separated from other labels using the cell-type LISI
+    (:func:`~scib.metrics.clisi_graph`).
+
+    :param adata: AnnData object.
+    :param label_key: Key in ``adata.obs`` for cell type labels.
+    :param batch_key: Key in ``adata.obs`` for batch labels.
+    :param embed: Key in ``adata.obsm`` with an integrated embedding.
+    :param iso_threshold: Maximum number of batches per label for the label to be considered as isolated.
+        If ``None``, use the minimum number of batches that any label is present in.
+    :param verbose: Whether to print the isolated labels.
+    :return: Mean of the scaled cLISI scores over all isolated labels
     """
     # Determine isolated labels
     isolated_labels = get_isolated_labels(

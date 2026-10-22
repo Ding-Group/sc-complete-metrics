@@ -11,7 +11,7 @@ def graph_connectivity(
     obsp_key: str = "connectivities",
     k: int = 15,
     metric: str = "euclidean",
-):
+) -> float:
     """Graph Connectivity
 
     Quantify the connectivity of the subgraph per cell type label.
@@ -26,6 +26,8 @@ def graph_connectivity(
 
     :param adata: integrated adata with computed neighborhood graph
     :param label_key: name in adata.obs containing the cell identity labels
+    :param embed: Key in adata.obsm with the integrated embedding
+    :return: Graph connectivity score
 
     This function can be applied to all integration output types.
     The integrated object (``adata``) needs to have a kNN graph based on the integration output.

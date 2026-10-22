@@ -13,19 +13,17 @@ def crossfold_logistic(
     n_splits=5,
     max_iter=1000,
     random_state=0,
-):
-    """
-    Cross-fold logistic regression predicting true labels from cluster assignments.
+) -> float:
+    """Cross-batch logistic regression
 
-    Can be called as:
-      crossfold_logistic(adata, cluster_key='cluster', label_key='celltype')
-    or (second AnnData ignored):
-      crossfold_logistic(adata, adata_int, cluster_key='cluster', label_key='celltype')
+    Measures the ability of a logistic regression classifier to predict cell type labels of cells
+    from a held-out fold from the remaining folds.
 
-    :param adata_pre: AnnData with .obs containing cluster_key and label_key
-    :param label_key: Column in adata.obs to use as targets (true labels)
-    :param embed: Key in adata.obsm with integrated embedding
+    :param adata: AnnData object
+    :param label_key: Column in ``adata.obs`` with groundtruth cell type labels
+    :param embed: Key in ``adata.obsm`` with integrated embedding
     :param n_splits: Number of StratifiedKFold splits
+    :param max_iter: Maximum number of iterations during fitting logistic regression
     :param random_state: RNG seed for splitting
     :return: Mean classification accuracy across folds
     """

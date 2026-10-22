@@ -11,13 +11,17 @@ def kl_divergence(
     k: int = None,
     metric: str = "euclidean"
 ):
-    """Compute average KL divergence between local and global batch distribution
+    """Nearest neighbor KL divergence
+    
+    Compute average KL divergence between local and global batch distribution
     in nearest neighborhoods.
 
     :param adata: AnnData object
     :param batch_key: Column in ``adata.obs`` with batch annotations.
+    :param embed: Key in ``adata.obsm`` with integrated embeddings.
     :param k: Number of neighbors for local distribution. Default to 5 x # of batches
     :param metric: Distance metric for nearest neighbor computation
+    :return: Neighborhood KL divergence score
     """
     # Sanity checks
     check_adata(adata)

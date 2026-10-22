@@ -291,7 +291,8 @@ def calc_kBET_across_labels(
     :param alpha: Acceptance rate threshold. A cell is accepted if its kBET p-value is greater than or equal to ``alpha``
     :param n_jobs: Number of threads used
     :param temp_folder: Temporary folder for joblib execution.
-    :param return_means: Whether to return the mean of kBET values across cells or return all values
+    :param return_means: Whether to return the mean of kBET values across cells or return all values.
+    :return: kBET across labels score
     """
     counts = adata.obs.groupby(label_key).agg(
         {label_key: "count", batch_key: "nunique"}
@@ -358,7 +359,7 @@ def calc_kBET(
     :param alpha: Acceptance rate threshold. A cell is accepted if its kBET p-value is greater than or equal to ``alpha``
     :param n_jobs: Number of threads used
     :param temp_folder: Temporary folder for joblib execution.
-    :param use_cache: If use cache results for kNN.
+    :return: kBET score.
     """
     # assert attr in adata.obs
     if adata.obs[batch_key].dtype.name != "category":

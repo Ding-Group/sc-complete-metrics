@@ -1,5 +1,6 @@
 import sklearn
 
+
 def ksim(
     adata,
     label_key,
@@ -8,7 +9,13 @@ def ksim(
     k: int = 25,
     metric: str = "euclidean"
 ) -> float:
-    """kSIM from Pegasus
+    """kSIM
+
+    Similarity of k-nearest neighbors from Li et al. 2020
+    "Deep learning enables accurate clustering with batch effect removal 
+    in single-cell RNA-seq analysis"
+
+    doi:10.1038/s41467-020-15851-3
 
     :param adata: AnnData object
     :param label_key: Column in ``adata.obs`` with cell type information
@@ -16,6 +23,7 @@ def ksim(
     :param beta: Cutoff for acceptance
     :param k: Number of nearest neighbors
     :param metric: Distance metric for nearest neighbor computation
+    :return: kSIM metric score
     """
     x = adata.obsm[embed]
     y = adata.obs[label_key].to_numpy()

@@ -10,10 +10,15 @@ def retained_knn(
     embed_post,
     n_neighbors: int = 50,
     metric: str = "euclidean"
-):
+) -> float:
     """Retained nearest neighbors
 
-    From Mandric et al., 2020.
+    Computes the proportion of nearest neighbors in the unintegrated
+    data that are kept in the integrated data. From Mandric et al., 2020.
+    "BATMAN: fast and accurate integration of single-cell RNA-seq datasets 
+    via minimum-weight matching"
+
+    doi:10.1016/j.isci.2020.101185
 
     :param adata_pre: Pre-integration AnnData.
     :param adata_post: Post-integration AnnData.
@@ -21,6 +26,7 @@ def retained_knn(
     :param embed_post: Post-integration embedding key in adata_post.obsm.
     :param n_neighbors: Number of nearest neighbors to consider.
     :param metric: Distance metric for nearest neighbor computation.
+    :return: The retained KNN score
     """
     batches = np.unique(adata_pre.obs[batch_key])
 

@@ -1,21 +1,21 @@
 import pandas as pd
-from sklearn.metrics import f1_score
 from sklearn.cluster import KMeans
+from sklearn.metrics import f1_score
 
 from ..utils import check_adata, check_batch
 
 
-def f1_score_macro(adata, label_key, cluster_key):
-    """
-    Compute the macro-averaged F1 score between predicted clusters and ground truth labels.
+def f1_score_macro(adata, label_key, cluster_key) -> float:
+    """Clustering F1
 
-    Parameters:
-    - adata: AnnData object
-    - cluster_key: str, column in adata.obs with predicted cluster labels
-    - label_key: str, column in adata.obs with ground truth labels
+    Computes the macro-averaged F1 score between clustering assignments and true labels.
+    Each cluster is first mapped to the most frequent true label among its cells (majority voting), and the F1
+    score is then computed between the true labels and the mapped labels, averaged over labels with equal weight.
 
-    Returns:
-    - Macro F1 score (float)
+    :param adata: AnnData object containing the data and annotations.
+    :param label_key: Key in adata.obs for true cell type labels.
+    :param cluster_key: Key in adata.obs for cluster assignments.
+    :return: Macro-averaged F1 score.
     """
     check_adata(adata)
     check_batch(cluster_key, adata.obs)

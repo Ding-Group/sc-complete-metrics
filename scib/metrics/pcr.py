@@ -20,16 +20,17 @@ def per_label_pcr_comparison(
     verbose: bool = False,
     n_threads: int = 1,
     weighted: bool = True
-):
-    """Principal component regression averaged across cell types
+) -> float:
+    """Per-cell type PCR
+    
+    Principal component regression averaged across cell types
     This presumes that you are computing PCR for batch correction.
 
     :param adata_pre: anndata object before integration
     :param adata_post: anndata object after integration
-    :param covariate: Key for ``adata_post.obs`` column to regress against
-    :param embed: Embedding to use for principal component analysis.
-        If None, use the full expression matrix (``adata_post.X``), otherwise use the embedding
-        provided in ``adata_post.obsm[embed]``.
+    :param label_key: Key in ``adata_post.obs`` with cell type labels
+    :param batch_key: Key in ``adata_post.obs`` with batch labels
+    :param embed: Key in ``adata.obsm`` with integrated embedding
     :param min_cells: Minimum number of cells in a cell type to calculate the PCR
     :param n_comps: Number of principal components to compute
     :param recompute_pca: Whether to recompute PCA with default settings
@@ -90,7 +91,7 @@ def pcr_comparison(
     scale: bool = True,
     verbose: bool = False,
     n_threads: int = 1,
-):
+) -> float:
     """Principal component regression score
 
     Compare the explained variance before and after integration using :func:`~scib.metrics.pc_regression`.
@@ -110,6 +111,7 @@ def pcr_comparison(
     :param linreg_method: Method for linear regression, either 'sklearn' or 'numpy'
     :param scale: If True, scale score between 0 and 1 (default)
     :param verbose:
+    :param n_threads:
     :return:
         Difference of variance contribution of PCR (scaled between 0 and 1 by default)
 

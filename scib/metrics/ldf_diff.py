@@ -10,7 +10,24 @@ def ldf_diff(
     n_dim=None,
     k: int = 75,
     return_per_cell = False
-):
+) -> float:
+    """ldfDiff
+
+    Computes the ldfDiff metric from Lutge et al., "CellMixS: quantifying
+    and visualizing batch effects in single-cell RNA-seq data",
+    using a wrapper around ``CellMixS::ldfDiff`` via rpy2.
+
+    doi:10.26508/lsa.202001004
+
+    :param adata_pre: AnnData object containing unintegrated data
+    :param adata_post: AnnData object containing integrated data
+    :param batch_key: Key in ``adata_pre.obs`` containing batch labels
+    :param embed_pre`: Key in ``adata_pre.obsm`` containing unintegrated embeddings
+    :param embed_post`: Key in ``adata_post.obsm`` containing integrated embeddings
+    :param k: Number of nearest neighbors to use
+    :param return_per_cell: If True, return the per-cell scores instead of their mean
+    :return: ldfDiff score
+    """
     if n_dim is None:
         n_dim = min(adata_post.obsm[embed_post].shape[1], adata_pre.obsm[embed_pre].shape[1])
 
@@ -36,10 +53,8 @@ def ldf_diff(
 
     try:
         import rpy2.robjects as ro
+        from rpy2.robjects import StrVector, conversion, default_converter, numpy2ri
         from rpy2.robjects.packages import importr
-        from rpy2.robjects import numpy2ri, StrVector
-        from rpy2.robjects import conversion, default_converter
-        from rpy2.robjects import numpy2ri
     except Exception as e:
         raise RuntimeError(
             "rpy2 is required but not available. Install with `pip install rpy2`."
@@ -53,7 +68,6 @@ def ldf_diff(
         importr("CellMixS")
         r = ro.r
 
-        # 3.Build SCE (minimal when embedding is provided).
         n_cells = adata_post.n_obs
         r.assign("n_cells", int(n_cells))
 

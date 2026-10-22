@@ -8,8 +8,11 @@ def pstdb(
     embed,
     k: int = 50,
     metric: str = "euclidean"
-):
+) -> float:
     """Proportion of nearest neighbors of the same cell type but a different batch.
+
+    From He et al. 2020 "CSS: cluster similarity spectrum integration of 
+    single-cell genomics data"
 
     :param adata: AnnData object
     :param batch_key: Column in ``adata.obs`` with batch information
@@ -17,6 +20,7 @@ def pstdb(
     :param embed: Key in ``adata.obsm`` with integrated embedding
     :param k: Number of nearest neighbors
     :param metric: Distance metric for nearest neighbor computation
+    :return: The proportion of nearest neighbors of the same cell type but a different batch 
     """
     nn = sklearn.neighbors.NearestNeighbors(n_neighbors=k + 1, metric=metric).fit(adata.obsm[embed])
     nn.fit(adata.obsm[embed])

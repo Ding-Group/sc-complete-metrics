@@ -10,11 +10,16 @@ def batch_shannon_entropy(
     cluster_key: str,
     normalize: bool = True
 ) -> float:
-    """
+    """Batch Shannon entropy by cluster
+
     Weighted average Shannon entropy of batch labels within each cluster.
     Higher = better batch mixing.
 
-    If normalize=True, returns a value in [0, 1] by dividing by log(#batches).
+    :param adata: AnnData object.
+    :param batch_key: Key in ``adata.obs`` containing batch labels.
+    :param cluster_key: Key in ``adata.obs`` containing cluster assignments.
+    :param normalize: If True, returns a value in [0, 1] by dividing by log(#batches).
+    :return: Batch Shannon entropy by cluster
     """
     check_adata(adata)
     check_batch(cluster_key, adata.obs)
@@ -46,10 +51,15 @@ def celltype_shannon_entropy(
     cluster_key: str,
     normalize: bool = True
 ) -> float:
-    """
+    """Cell type Shannon entropy by cluster
+
     Weighted average Shannon entropy of cell type labels within each cluster.
 
-    If normalize=True, returns a value in [0, 1] by dividing by log(#cell types).
+    :param adata: AnnData object.
+    :param label_key: Key in ``adata.obs`` containing groundtruth cell type labels.
+    :param cluster_key: Key in ``adata.obs`` containing cluster assignments.
+    :param normalize: If True, returns a value in [0, 1] by dividing by log(#cell types).
+    :return: Cell type Shannon entropy by cluster.
     """
     check_adata(adata)
     check_batch(cluster_key, adata.obs)
@@ -73,7 +83,6 @@ def celltype_shannon_entropy(
     if normalize and max_ent > 0:
         score /= max_ent
     if normalize:
-        # The lower the entropy the better, so flip the sign
         return 1 - float(score)
     else:
         return -float(score)

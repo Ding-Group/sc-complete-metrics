@@ -19,8 +19,22 @@ def nnmap(
     similarity: typing.Callable = _identity,
     n_jobs: int = 1,
 ) -> float:
-    """
-    Nearest-neighbor mean average precision.
+    """Nearest-neighbor mean average precision.
+
+    Computes the nearest-neighbor mean average precision from Cao et al. 2020
+    "Searching large-scale scRNA-seq databases via unbiased cell embedding with Cell BLAST"
+
+    doi:10.1038/s41467-020-17281-7
+
+    :param adata: AnnData object
+    :param label_key: Key in ``adata.obs`` containing cell type labels
+    :param embed: Key in ``adata.obsm`` containing integrated embeddings
+    :param k: Number of nearest neighbors to use. If k is a float, it represents
+        a fraction of the total number of cells
+    :param metric: Distance metric for nearest neighbor computation
+    :param similarity: Similarity metric, default is the identity
+    :param n_jobs: Number of parallel jobs
+    :return: THe nearest-neighbor mean average precision score
     """
     x = adata.obsm[embed]
     y = adata.obs[label_key].to_numpy()

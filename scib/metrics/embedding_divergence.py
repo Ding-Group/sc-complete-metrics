@@ -2,16 +2,22 @@ import numpy as np
 
 
 # https://github.com/txWang/BERMUDA/blob/1e1e031b7dc59bca98a494729f151905bf05e13b/evaluate.py#L39
-def knn_divergence(adata, label_key, batch_key, embed, min_cells=30):
-    """KNN Divergence
+def embedding_divergence(adata, label_key, batch_key, embed, min_cells=30) -> float:
+    """Embedding Divergence
 
-    As proposed by Wang et al., 2019.
+    Divergence between embedding distributions from Wang et al., 2019. 
+    "BERMUDA: a novel deep transfer learning method for single-cell 
+    RNA sequencing batch correction reveals hidden high-resolution 
+    cellular subtypes"
+
+    doi:10.1186/s13059-019-1764-6
 
     :param adata: AnnData object.
     :param label_key: Key in adata.obs containing cell type information.
     :param batch_key: Key in adata.obs containing batch information.
     :param embed: Key in adata.obsm with integrated embedding.
     :param min_cells: Minimum number of cells for estimation.
+    :return: The embedding divergence score.
     """
     from universal_divergence import estimate
 
