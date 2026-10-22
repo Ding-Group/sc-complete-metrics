@@ -5,9 +5,9 @@ from ..utils import check_adata, check_batch
 
 
 def matthews_corrcoef(adata, label_key, cluster_key) -> float:
-    """Matthews correlation coefficient
+    """Matthews correlation coefficient (MCC)
 
-    Compute the Matthews correlation coefficient (MCC) between predicted clusters and true labels.
+    Compute the Matthews correlation coefficient between predicted clusters and true labels.
 
     :param adata: AnnData object.
     :param label_key: Key in ``adata.obs`` for groundtruth cell type labels.

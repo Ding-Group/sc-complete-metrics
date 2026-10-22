@@ -5,7 +5,7 @@ from ..utils import check_adata, check_batch
 
 
 def compactness(adata, label_key, cluster_key, embed) -> float:
-    """Compactness
+    """Compactness (COMPACT)
     
     Computes the average intra-cluster distance.
 

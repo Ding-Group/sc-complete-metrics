@@ -18,7 +18,7 @@ def cilisi(
     verbose: bool = False,
     return_all: bool = False
 ) -> float:
-    """Average iLISI per cell type.
+    """Average iLISI per cell type (CILISI)
 
     :param adata: AnnData object.
     :param batch_key: Key in adata.obs containing batch information.

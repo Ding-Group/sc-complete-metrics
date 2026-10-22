@@ -4,7 +4,9 @@ from ..utils import check_adata, check_batch
 
 
 def completeness(adata, label_key, cluster_key) -> float:
-    """Completeness
+    """Completeness (COMPLETE)
+
+    Calculates the completeness score.
     
     :param adata: AnnData object
     :param label_key: Column in ``adata.obs`` with cell type information

@@ -21,7 +21,7 @@ def per_label_pcr_comparison(
     n_threads: int = 1,
     weighted: bool = True
 ) -> float:
-    """Per-cell type PCR
+    """Per-cell type PCR (CPCR)
     
     Principal component regression averaged across cell types
     This presumes that you are computing PCR for batch correction.
@@ -92,7 +92,7 @@ def pcr_comparison(
     verbose: bool = False,
     n_threads: int = 1,
 ) -> float:
-    """Principal component regression score
+    """Principal component regression score (PCR)
 
     Compare the explained variance before and after integration using :func:`~scib.metrics.pc_regression`.
     Return either the difference of variance contribution before and after integration

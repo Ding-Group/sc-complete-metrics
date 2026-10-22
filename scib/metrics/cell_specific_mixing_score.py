@@ -15,7 +15,7 @@ def cell_specific_mixing_score(
     res_name=None,
     return_per_cell=False,
 ) -> float:
-    """Cell-specific mixing score
+    """Cell-specific mixing score (CSMS)
 
     Computes the cell-specific mixing score from Lutge et al., 2022 "CellMixS: quantifying
     and visualizing batch effects in single-cell RNA-seq data", a wrapper around ``CellMixS::cms`` via rpy2.

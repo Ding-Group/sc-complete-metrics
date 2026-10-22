@@ -14,7 +14,7 @@ def crossfold_logistic(
     max_iter=1000,
     random_state=0,
 ) -> float:
-    """Cross-batch logistic regression
+    """Cross-batch logistic regression (FLOGREG)
 
     Measures the ability of a logistic regression classifier to predict cell type labels of cells
     from a held-out fold from the remaining folds.

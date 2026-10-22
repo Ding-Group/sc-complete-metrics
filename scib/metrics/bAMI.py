@@ -3,7 +3,7 @@ import numpy as np
 
 # Based on: https://github.com/theislab/atlas-feature-selection-benchmark/blob/main/bin/metric-bARI.py
 def bAMI(adata, label_key, cluster_key) -> float:
-    """Balanced Adjusted Mutual Information
+    """Balanced Adjusted Mutual Information (BAMI)
 
     Computes the balanced adjusted mutual information between clustering 
     assignments and true labels from Maan et al., 2024 "Characterizing

@@ -33,7 +33,7 @@ def scgraph(
     thres_celltype: int = 10,
     pca_comps: int = 10
 ) -> float:
-    """scGraph
+    """scGraph (SCGRAPH, SCGRAPHP, SCGRAPHM)
 
     The scGraph metric that measures whether distances in the integrated
     embedding space reflect distances in unintegrated PCA space. From

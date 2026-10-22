@@ -6,7 +6,7 @@ from ..utils import check_adata, check_batch
 
 
 def batch_ari(adata, label_key, cluster_key) -> float:
-    """Batch ARI
+    """Batch ARI (BATCHARI)
 
     Computes the adjusted Rand index between clustering assignments 
     and batch labels instead of cell type labels. A low ARI indicates 

@@ -20,7 +20,7 @@ def morans_i(
     max_genes=150,
     use_gene_score=False,
 ):
-    """Moran's I
+    """Moran's I (MORANI)
 
     Proposed by Hrovatin et al. 2025 "Integrating single-cell RNA-seq 
     datasets with substantial batch effects". Moran's I measures whether

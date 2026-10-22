@@ -4,7 +4,7 @@ from ..utils import check_adata, check_batch
 
 
 def homogeneity(adata, label_key, cluster_key) -> float:
-    """Homogeneity score
+    """Homogeneity score (HOMO)
 
     Computes the homogeneity score.
 

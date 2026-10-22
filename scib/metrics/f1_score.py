@@ -6,7 +6,7 @@ from ..utils import check_adata, check_batch
 
 
 def f1_score_macro(adata, label_key, cluster_key) -> float:
-    """Clustering F1
+    """Clustering F1 (F1)
 
     Computes the macro-averaged F1 score between clustering assignments and true labels.
     Each cluster is first mapped to the most frequent true label among its cells (majority voting), and the F1

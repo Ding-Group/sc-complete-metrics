@@ -3,7 +3,7 @@ import numpy as np
 
 # https://github.com/txWang/BERMUDA/blob/1e1e031b7dc59bca98a494729f151905bf05e13b/evaluate.py#L39
 def embedding_divergence(adata, label_key, batch_key, embed, min_cells=30) -> float:
-    """Embedding Divergence
+    """Embedding Divergence (EMBDIV)
 
     Divergence between embedding distributions from Wang et al., 2019. 
     "BERMUDA: a novel deep transfer learning method for single-cell 

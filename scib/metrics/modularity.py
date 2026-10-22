@@ -4,7 +4,7 @@ from ..utils import check_adata
 
 
 def modularity(adata, label_key, cluster_key) -> float:
-    """Modularity
+    """Modularity (MODULARITY)
 
     Compute the modularity of a clustering assignment.
 

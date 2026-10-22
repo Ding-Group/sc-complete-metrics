@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.stats
 from sklearn.neighbors import NearestNeighbors
+
 from ..utils import check_adata, check_batch
 
 
@@ -11,7 +12,7 @@ def kl_divergence(
     k: int = None,
     metric: str = "euclidean"
 ):
-    """Nearest neighbor KL divergence
+    """Nearest neighbor KL divergence (KLDIV)
     
     Compute average KL divergence between local and global batch distribution
     in nearest neighborhoods.

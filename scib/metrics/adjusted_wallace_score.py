@@ -2,7 +2,7 @@ import numpy as np
 
 
 def adjusted_wallace_score(adata, label_key, cluster_key, direction="mean") -> float:
-    """Adjusted Wallace Score
+    """Adjusted Wallace Score (AWC)
 
     Computes the Adjusted Wallace score from Severiano et al., 2011
     "Adjusted Wallace coefficient as a measure of congruence between typing methods"

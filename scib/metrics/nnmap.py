@@ -19,7 +19,7 @@ def nnmap(
     similarity: typing.Callable = _identity,
     n_jobs: int = 1,
 ) -> float:
-    """Nearest-neighbor mean average precision.
+    """Nearest-neighbor mean average precision (NNMAP)
 
     Computes the nearest-neighbor mean average precision from Cao et al. 2020
     "Searching large-scale scRNA-seq databases via unbiased cell embedding with Cell BLAST"

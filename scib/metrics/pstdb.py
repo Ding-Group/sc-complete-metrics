@@ -9,7 +9,7 @@ def pstdb(
     k: int = 50,
     metric: str = "euclidean"
 ) -> float:
-    """Proportion of nearest neighbors of the same cell type but a different batch.
+    """Proportion of nearest neighbors of the same cell type but a different batch (PSTDB)
 
     From He et al. 2020 "CSS: cluster similarity spectrum integration of 
     single-cell genomics data"

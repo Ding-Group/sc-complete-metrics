@@ -50,7 +50,7 @@ def ilisi_graph(
     verbose: bool = False,
     return_all: bool = False,
 ) -> float:
-    """Integration LISI (iLISI) score
+    """Integration LISI score (ILISI)
 
     Local Inverse Simpson's Index metrics adapted from `Korsunsky et al. 2019`_ to run on all full
     feature, embedding and kNN integration outputs via shortest path-based distance computation on single-cell kNN
@@ -133,7 +133,7 @@ def clisi_graph(
     verbose: bool = False,
     return_all: bool = False
 ) -> float:
-    """Cell-type LISI (cLISI) score
+    """Cell-type LISI score (CLISI)
 
     Local Inverse Simpson’s Index metrics adapted from `Korsunsky et al. 2019`_ to run on all full
     feature, embedding and kNN integration outputs via shortest path-based distance computation on single-cell kNN

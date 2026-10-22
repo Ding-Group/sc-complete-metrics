@@ -30,7 +30,7 @@ def chunked_corr_mse(X1, X2, chunk_size=5000) -> float:
 
 
 def corr_mse(adata_pre, adata_post, batch_key, embed_post, embed_pre='X_pca') -> float:
-    """Corr-MSE
+    """Corr-MSE (CORRMSE)
 
     From Yi et al., 2025 "Benchmarking deep learning methods for
     biologically conserved single-cell integration"

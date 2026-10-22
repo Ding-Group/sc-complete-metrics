@@ -4,7 +4,7 @@ from ..utils import check_adata, check_batch
 
 
 def v_measure(adata, label_key, cluster_key) -> float:
-    """V-measure
+    """V-measure (VM)
 
     Computes the V-measure between clustering assignments and true labels.
     The V-measure is the harmonic mean of homogeneity and completeness, and ranges from 0 to 1.

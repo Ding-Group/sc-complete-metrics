@@ -4,7 +4,7 @@ from ..utils import check_adata, check_batch
 
 
 def scaled_variance(adata, batch_key, embed, n_comps=None) -> float:
-    """Scaled variance
+    """Scaled variance (SV)
 
     Variance of data from different batches across embedding dimensions,
     from Hsu & Culhane, 2023 "Correspondence analysis for dimension reduction, 

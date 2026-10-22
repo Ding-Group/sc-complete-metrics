@@ -5,7 +5,7 @@ from ..utils import check_adata, check_batch
 
 
 def purity(adata, label_key, cluster_key) -> float:
-    """Purity
+    """Purity (PURITY)
 
     Calculates the cluster purity score for cell type.
 

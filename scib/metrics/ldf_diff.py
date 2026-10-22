@@ -11,7 +11,7 @@ def ldf_diff(
     k: int = 75,
     return_per_cell = False
 ) -> float:
-    """ldfDiff
+    """ldfDiff (LDFDIFF)
 
     Computes the ldfDiff metric from Lutge et al., "CellMixS: quantifying
     and visualizing batch effects in single-cell RNA-seq data",

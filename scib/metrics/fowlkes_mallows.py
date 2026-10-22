@@ -4,7 +4,10 @@ from ..utils import check_adata, check_batch
 
 
 def fowlkes_mallows(adata, label_key, cluster_key) -> float:
-    """Fowlkes-Mallows score.
+    """Fowlkes-Mallows score (FMI)
+
+    Computes the Fowlkes-Mallows score between the groundtruth
+    cell type labels and the cluster assignments.
 
     :param adata: AnnData object.
     :param label_key: Key in adata.obs containing cell type information.

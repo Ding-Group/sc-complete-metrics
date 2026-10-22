@@ -10,7 +10,7 @@ from .utils import RootCellError
 def trajectory_conservation(
     adata_pre, adata_post, label_key, pseudotime_key: str = "dpt_pseudotime", batch_key: str = None
 ) -> float:
-    """Trajectory conservation score
+    """Trajectory conservation score (TRAJ)
 
     Trajectory conservation is measured by  spearman’s rank correlation coefficient :math:`s`, between the pseudotime
     values before and after integration.

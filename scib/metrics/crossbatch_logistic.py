@@ -12,7 +12,7 @@ def crossbatch_logistic(
     embed: str,
     max_iter: int = 1000,
 ) -> float:
-    """Cross-batch logistic regression
+    """Cross-batch logistic regression (BLOGREG)
 
     Measures the ability of a logistic regression classifier to predict cell type labels of cells from one batch
     using cells from all other batches. For each batch, a classifier is trained on the cells from all other

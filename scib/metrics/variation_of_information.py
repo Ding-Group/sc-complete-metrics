@@ -4,7 +4,7 @@ from sklearn.metrics import mutual_info_score
 
 
 def variation_of_information(adata, label_key, cluster_key, normalize=True) -> float:
-    """Variation of information
+    """Variation of information (VI)
 
     :param adata: AnnData object.
     :param label_key: Key in adata.obs containing cell type labels.

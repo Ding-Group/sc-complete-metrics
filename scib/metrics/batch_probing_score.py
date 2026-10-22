@@ -21,7 +21,7 @@ def per_label_batch_probing_score(
     max_depth=10,
     max_iter=100
 ):
-    """Batch probing score per cell type
+    """Batch probing score per cell type (CPROBE, CPROBERF, CPROBELR)
 
     Computes the batch probing score for each cell type that has
     at least `min_cells`. Batch probing scores are averaged across
@@ -86,7 +86,7 @@ def batch_probing_score(
     max_depth=10,
     max_iter=100,
 ) -> float:
-    """Batch probing score.
+    """Batch probing score (PROBE, PROBERF, PROBELR)
 
     Computes BPS-RF and BPS-LR metrics for the given embedding from
     Codice et al. 2025 "Probing as a new technique to assess single-cell 

@@ -11,7 +11,7 @@ def retained_knn(
     n_neighbors: int = 50,
     metric: str = "euclidean"
 ) -> float:
-    """Retained nearest neighbors
+    """Retained nearest neighbors (RKNN)
 
     Computes the proportion of nearest neighbors in the unintegrated
     data that are kept in the integrated data. From Mandric et al., 2020.

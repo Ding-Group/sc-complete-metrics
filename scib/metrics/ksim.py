@@ -9,7 +9,7 @@ def ksim(
     k: int = 25,
     metric: str = "euclidean"
 ) -> float:
-    """kSIM
+    """kSIM (KSIM)
 
     Similarity of k-nearest neighbors from Li et al. 2020
     "Deep learning enables accurate clustering with batch effect removal 

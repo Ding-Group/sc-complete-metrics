@@ -3,7 +3,7 @@ from sklearn.neighbors import NearestNeighbors
 
 
 def adgbd(adata, batch_key, embed, n_neighbors: int = 50, metric: str = "euclidean") -> float:
-    """Average deviation from global batch distribution.
+    """Average deviation from global batch distribution (ADGBD)
 
     Computes the average deviation from global batch distribution
     proposed by Qian et al. 2022 "scINSIGHT for interpreting single-cell 

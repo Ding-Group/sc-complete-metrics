@@ -5,7 +5,7 @@ from ..utils import check_adata, check_batch
 
 
 def pptpc(adata, batch_key, label_key, embed, n_neighbors: int = 100, metric: str = "euclidean") -> float:
-    """Proportion of Positive and True Positive Cells
+    """Proportion of Positive and True Positive Cells (PPTPC)
 
     From Wang et al. 2021 "iMAP: integration of multiple single-cell datasets 
     by adversarial paired transfer networks"

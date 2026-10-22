@@ -3,7 +3,9 @@ from sklearn.metrics import davies_bouldin_score
 
 
 def davies_bouldin(adata, label_key, cluster_key, embed) -> float:
-    """Davies-Bouldin Score
+    """Davies-Bouldin index (CLUSTDBI, CDBI)
+
+    Computes the Davies-Bouldin index.
 
     :param adata: AnnData object containing the data and annotations.
     :param label_key: Unused parameter.

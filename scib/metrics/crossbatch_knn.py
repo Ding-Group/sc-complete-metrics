@@ -8,7 +8,7 @@ from ..utils import check_adata, check_batch
 def crossbatch_knn(
     adata, batch_key, label_key, embed, n_neighbors: int = 21, metric: str = "euclidean"
 ) -> float:
-    """Cross-batch KNN classifier
+    """Cross-batch KNN classifier (BKNN)
 
     Train classifier on all but one batch, test on the held out one.
     Returns average accuracy over all batch pairs.

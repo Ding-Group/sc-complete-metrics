@@ -7,7 +7,7 @@ from ..utils import check_adata, check_batch
 # Source: https://github.com/theislab/cross_system_integration/tree/e2958d3f18aa2971d1cb9dd7e191e998d0969678
 
 def jaccard_index(adata, label_key, cluster_key) -> float:
-    """Jaccard index
+    """Jaccard index (JACC)
 
     Computes the micro-averaged Jaccard index between clustering assignments and true labels.
     Each cluster is first mapped to the most frequent true label among its cells (majority voting), and the

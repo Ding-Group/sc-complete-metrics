@@ -21,7 +21,7 @@ def cell_cycle(
     linreg_method="numpy",
     n_threads=1,
 ) -> float:
-    """Cell cycle conservation score
+    """Cell cycle conservation score (CCC)
 
     Compare the variance contribution of S-phase and G2/M-phase cell cycle scores before and
     after integration. Cell cycle scores are computed per batch on the unintegrated data set,

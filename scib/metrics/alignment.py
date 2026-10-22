@@ -12,7 +12,7 @@ def alignment(
     metric: str = "euclidean",
     seed: int = 0,
 ) -> float:
-    """Alignment score
+    """Alignment score (ALIGN)
 
     Computes the alignment score from Butler et al. 2018 "Integrating single-cell
     transcriptomic data across different conditions, technologies, and species".

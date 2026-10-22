@@ -8,7 +8,7 @@ def separation(
     cluster_key,
     embed
 ) -> float:
-    """Separation
+    """Separation (SEPARATION)
 
     Compute the average inter-cluster distance (separation).
 

@@ -15,7 +15,7 @@ def crossfold_knn(
     metric: str = "euclidean",
     random_state=0,
 ) -> float:
-    """Cross-fold k-nearest neighbor classification.
+    """Cross-fold k-nearest neighbor classification (FKNN)
 
     Measures the ability of a KNN classifier to predict cell type labels of cells
     from a held-out fold from the remaining folds.

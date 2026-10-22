@@ -7,7 +7,7 @@ def bras(
     metric: str = "cosine",
     between_cluster_distances: str = "mean_other"
 ) -> float:
-    """BRAS.
+    """BRAS (BRAS)
 
     Wrapper around BRAS from scib-metrics, as defined in
     Rautenstrauch & Ohler, 2025 "Shortcomings of silhouette in single-cell 

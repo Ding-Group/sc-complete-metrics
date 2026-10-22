@@ -17,7 +17,7 @@ from ..utils import check_adata, check_batch
 @renamed_arg("group1", "cluster_key")
 @renamed_arg("group2", "label_key")
 def ari(adata, label_key, cluster_key, implementation=None) -> float:
-    """Adjusted Rand Index
+    """Adjusted Rand Index (ARI)
 
     The adjusted rand index is a chance-adjusted rand index, which evaluates the pair-wise accuracy of clustering vs.
     ground truth label assignments.
@@ -99,7 +99,7 @@ def ari_fixed(
     resolution: float = 2.0,
     **kwargs,
 ) -> float:
-    """ARI fixed
+    """ARI fixed (ARIF)
 
     Version of ARI where clustering is applied with a very high resolution.
     Clusters are then mapped onto labels based on the most prevalent

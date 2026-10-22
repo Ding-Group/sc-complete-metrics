@@ -5,9 +5,9 @@ from ..utils import check_adata, check_batch
 
 
 def calinski_harabasz(adata, label_key, cluster_key, embed) -> float:
-    """
-    Compute the Calinski-Harabasz index for cluster evaluation.
+    """Calinski-Harabasz index (CLUSTCH and CCH)
 
+    Compute the Calinski-Harabasz index for cluster evaluation.
     A higher Calinski-Harabasz score relates to a model with better defined clusters.
 
     :param adata: AnnData object

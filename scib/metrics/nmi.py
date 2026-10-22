@@ -17,7 +17,7 @@ from ..utils import check_adata, check_batch
 @renamed_arg("group2", "label_key")
 @renamed_arg("method", "implementation")
 def nmi(adata, cluster_key, label_key, implementation="arithmetic", nmi_dir=None) -> float:
-    """Normalized mutual information
+    """Normalized mutual information (NMI)
 
     The normalized mutual information is a version of the mutual information corrected by the entropy of clustering and
     ground truth labels (e.g. cell type).
@@ -209,7 +209,7 @@ def nmi_fixed(
     resolution=2.0,
     **kwargs,
 ):
-    """NMI fixed
+    """NMI fixed (NMIF)
 
     Version of NMI where clustering is applied with a very high resolution.
     Clusters are then mapped onto labels based on the most prevalent

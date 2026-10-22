@@ -11,9 +11,10 @@ def compute_cooccurrence_matrix(labels, batches):
 
 
 def kl_cluster(adata, batch_key, cluster_key, label_key) -> float:
-    """KL divergence cluster
+    """KL cluster (KLC)
 
     Assumes that the number of clusters equals the number of labels.
+    Because of this constraint, it is not analyzed in our metric evaluation.
 
     :param adata: AnnData object.
     :param batch_key: Key in adata.obs with batch information.

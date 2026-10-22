@@ -1,6 +1,6 @@
 # Source: https://github.com/theislab/atlas-feature-selection-benchmark/blob/main/bin/metric-bARI.py
 def bARI(adata, label_key, cluster_key) -> float:
-    """Balanced Adjusted Rand Index
+    """Balanced Adjusted Rand Index (BARI)
 
     Computes the balanced adjusted Rand index between clustering assignments 
     and true labels from Maan et al., 2024  "Characterizing the impacts of 

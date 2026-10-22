@@ -35,8 +35,8 @@ from .highly_variable_genes import hvg_overlap
 from .homogeneity import homogeneity
 from .isolated_labels import isolated_labels, isolated_labels_asw, isolated_labels_f1, isolated_labels_lisi
 from .jaccard import jaccard_index
-from .kbet import kBET, calc_kBET, calc_kBET_across_labels
 from .kl_cluster import kl_cluster
+from .kbet import kBET, calc_kBET, calc_kBET_across_labels
 from .kl_divergence import kl_divergence
 from .ksim import ksim
 from .ldf_diff import ldf_diff
@@ -111,8 +111,8 @@ __all__ = [
     "isolated_labels_f1",
     "isolated_labels_lisi",
     "jaccard_index",
-    "kBET",
     "kl_cluster",
+    "kBET",
     "kl_divergence",
     "embedding_divergence",
     "ksim",

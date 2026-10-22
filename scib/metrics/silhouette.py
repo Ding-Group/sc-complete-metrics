@@ -10,7 +10,7 @@ except ImportError:
 
 @renamed_arg("group_key", "label_key")
 def silhouette(adata, label_key, embed, metric: str = "euclidean", scale: bool = True) -> float:
-    """Average silhouette width (ASW)
+    """Average silhouette width (CASW)
 
     Wrapper for sklearn silhouette function values range from [-1, 1] with
 
@@ -67,7 +67,7 @@ def silhouette_batch(
     scale: bool = True,
     verbose: bool = True,
 ) -> float:
-    """Batch ASW
+    """Batch ASW (BASW)
 
     Modified average silhouette width (ASW) of batch
 
@@ -179,7 +179,7 @@ def silhouette_cluster(
     metric: str = "euclidean",
     scale=True,
 ) -> float:
-    """Cluster silhouette
+    """Cluster silhouette (CLUSTASW)
 
     Computes the traditional average silhouette width given cluster labels.
 

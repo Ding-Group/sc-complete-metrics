@@ -7,7 +7,7 @@ from ..utils import check_adata, check_batch
 
 
 def shannon_entropy_nn(adata, batch_key, label_key, embed, n_neighbors: int = 50, metric: str = "euclidean"):
-    """Shannon entropy by neighbourhood
+    """Shannon entropy by neighbourhood (CNENT, BNENT)
 
     Compute the batch and cell type Shannon entropy within each cell's
     local neighbourhood.

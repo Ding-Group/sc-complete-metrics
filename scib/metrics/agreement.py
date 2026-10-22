@@ -15,7 +15,7 @@ def agreement(
     n_neighbors: int = 15,
     metric: str = "euclidean",
 ) -> float:
-    """Agreement score
+    """Agreement score (AGREE)
 
     Computes the agreement score from Welch et al. "Single-cell multi-omic
     integration compares and contrasts features of brain cell identity".

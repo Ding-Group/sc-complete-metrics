@@ -19,7 +19,7 @@ def isolated_labels_f1(
     verbose=True,
     **kwargs,
 ) -> float:
-    """Isolated label score F1
+    """Isolated label score F1 (ISOF1)
 
     Score how well isolated labels are distinguished from other labels by data-driven clustering.
     The F1 score is used to evaluate clustering with respect to the ground truth labels.
@@ -93,7 +93,7 @@ def isolated_labels_asw(
     scale=True,
     verbose=True,
 ):
-    """Isolated label score ASW
+    """Isolated label score ASW (ISOASW)
 
     Score how well isolated labels are distinguished from all other labels using the average-width silhouette score
     (ASW) :func:`~scib.metrics.silhouette`.
@@ -151,7 +151,7 @@ def isolated_labels_lisi(
     iso_threshold=None,
     verbose=True,
 ) -> float:
-    """Isolated label score LISI
+    """Isolated label score LISI (ISOLISI)
 
     Score how well isolated labels are separated from other labels using the cell-type LISI
     (:func:`~scib.metrics.clisi_graph`).

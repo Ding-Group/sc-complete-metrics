@@ -10,7 +10,7 @@ def batch_shannon_entropy(
     cluster_key: str,
     normalize: bool = True
 ) -> float:
-    """Batch Shannon entropy by cluster
+    """Batch Shannon entropy by cluster (BCENT)
 
     Weighted average Shannon entropy of batch labels within each cluster.
     Higher = better batch mixing.
@@ -51,7 +51,7 @@ def celltype_shannon_entropy(
     cluster_key: str,
     normalize: bool = True
 ) -> float:
-    """Cell type Shannon entropy by cluster
+    """Cell type Shannon entropy by cluster (CCENT)
 
     Weighted average Shannon entropy of cell type labels within each cluster.
 

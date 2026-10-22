@@ -278,7 +278,9 @@ def calc_kBET_across_labels(
     temp_folder: str = None,
     return_means: bool = True
 ) -> Tuple[float]:
-    """Calculate the kBET metric using the Pegasus way, except averaged across labels.
+    """kBET per cell type (KBET)
+    
+    Calculate the kBET metric using the Pegasus way, except averaged across labels.
     This approach mirrors the scib kBET which splits up the data into label-specific
     subsets and calculates the kBET per label.
 
@@ -347,9 +349,14 @@ def calc_kBET(
     n_jobs: int = 1,
     temp_folder: str = None,
 ) -> Tuple[float]:
-    """Calculate the kBET metric of the data regarding a specific sample attribute and embedding.
+    """kBET across all cells (KBETALL)
 
-    The kBET metric is defined in [Büttner18]_, which measures if cells from different samples mix well in their local neighborhood.
+    Calculate the kBET metric without attention to the cell type labels.
+    The kBET metric is defined in Buttner et al. 2018, which measures if cells
+    from different samples mix well in their local neighborhood.
+    "A test metric for assessing single-cell RNA-seq batch correction"
+
+    doi:10.1038/s41592-018-0254-1
 
     :param adata: AnnData object
     :param batch_key: Column in ``adata.obs`` with batch information

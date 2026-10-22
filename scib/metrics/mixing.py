@@ -3,7 +3,7 @@ from sklearn.neighbors import NearestNeighbors
 
 
 def mixing(adata, batch_key, embed, k: int = 5, max_k: int = 300, metric: str = "euclidean") -> float:
-    """Mixing
+    """Mixing (MIX)
 
     Extent of mixing of neighbors from Stuart et al., 2019.
     "Comprehensive integration of single-cell data"

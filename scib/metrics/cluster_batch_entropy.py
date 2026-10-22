@@ -3,7 +3,12 @@ from scipy.special import rel_entr
 
 
 def cluster_batch_entropy(adata, label_key, cluster_key) -> float:
-    """Cluster batch entropy
+    """Cluster batch entropy (CRE)
+
+    From Barkas et al. 2019 "Joint analysis of heterogeneous single-cell 
+    RNA-seq dataset collections"
+
+    doi:10.1038/s41592-019-0466-z
 
     :param adata: AnnData object with obs annotations for clustering and batch
     :param label_key: Key in ``adata.obs`` indicating batch labels

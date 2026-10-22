@@ -12,7 +12,7 @@ def graph_connectivity(
     k: int = 15,
     metric: str = "euclidean",
 ) -> float:
-    """Graph Connectivity
+    """Graph Connectivity (GC)
 
     Quantify the connectivity of the subgraph per cell type label.
     The final score is the average for all cell type labels :math:`C`, according to the equation:

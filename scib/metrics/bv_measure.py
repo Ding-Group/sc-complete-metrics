@@ -2,7 +2,7 @@ import numpy as np
 
 
 def bv_measure(adata, label_key, cluster_key) -> float:
-    """Balanced V-measure
+    """Balanced V-measure (BVM)
 
     Computes the balanced V-measure between clustering assignments
     and true labels from Maan et al., 2024 "Characterizing
