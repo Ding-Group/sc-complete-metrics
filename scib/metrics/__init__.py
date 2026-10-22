@@ -27,7 +27,7 @@ from .crossfold_knn import crossfold_knn
 from .crossfold_logistic import crossfold_logistic
 from .davies_bouldin import davies_bouldin
 from .f1_score import f1_score_macro
-from .final_metrics import final_metrics
+from .metrics import final_metrics
 from .fowlkes_mallows import fowlkes_mallows
 from .graph_connectivity import graph_connectivity
 from .highly_variable_genes import hvg_overlap
@@ -42,7 +42,7 @@ from .ksim import ksim
 from .ldf_diff import ldf_diff
 from .lisi import clisi_graph, ilisi_graph, lisi_graph
 from .matthews_corrcoef import matthews_corrcoef
-from .metrics import metrics, metrics_all, metrics_fast, metrics_slim
+from .metrics import metrics, metrics_all
 from .mixing import mixing
 from .modularity import modularity
 from .morans_i import morans_i, sub_variable_genes

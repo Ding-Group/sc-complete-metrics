@@ -1,0 +1,38 @@
+name: sc-complete-metrics
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - python>=3.10
+  - pip
+  # compiled dependencies come from conda-forge so pip never builds them from source
+  - numpy
+  - pandas>=2
+  - scipy
+  - scikit-learn
+  - numba
+  - h5py
+  - zarr
+  - numcodecs
+  - anndata
+  - scanpy
+  - igraph
+  - python-igraph
+  - leidenalg
+  - umap-learn
+  - r-base>=4.2
+  - r-remotes
+  - r-seurat
+  - r-data.table
+  - bioconductor-singlecellexperiment
+  - bioconductor-summarizedexperiment
+  - bioconductor-biocparallel
+  - bioconductor-cellmixs
+  - bioconductor-scran
+  - bioconductor-scater
+  - ipykernel
+  - pip:
+      - rpy2>=3
+      - anndata2ri
+      - .

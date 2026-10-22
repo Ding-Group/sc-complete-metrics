@@ -3,7 +3,18 @@ try:
 except ImportError:  # for Python<3.8
     import importlib_metadata as metadata
 
-__version__ = metadata.version("scib")
+try:
+    __version__ = metadata.version("sc-complete-metrics")
+except metadata.PackageNotFoundError:  # installed under the old name or run from source
+    try:
+        __version__ = metadata.version("scib")
+    except metadata.PackageNotFoundError:
+        from pathlib import Path
+
+        _version_file = Path(__file__).resolve().parent.parent / "VERSION.txt"
+        __version__ = (
+            _version_file.read_text().strip() if _version_file.exists() else "unknown"
+        )
 
 from . import integration, metrics, preprocessing, utils
 from ._package_tools import rename_func

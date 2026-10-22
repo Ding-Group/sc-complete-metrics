@@ -1,1 +1,8 @@
 include VERSION.txt
+include README.md
+include LICENSE.txt
+include environment.yml
+include install_r_packages.R
+recursive-include scib/resources *
+recursive-include scib/knn_graph *.cpp makefile README.md
+recursive-include scib/balanced-clustering/balanced_clustering *.py *.pyx
