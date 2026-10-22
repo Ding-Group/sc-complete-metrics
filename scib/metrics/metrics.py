@@ -91,7 +91,7 @@ def metrics_all(adata, adata_int, batch_key, label_key, embed, **kwargs):
     return metrics(adata, adata_int, batch_key, label_key, embed, **flags)
 
 
-def final_metrics(
+def metrics_core(
     adata,
     adata_int,
     batch_key,

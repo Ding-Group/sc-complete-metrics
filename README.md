@@ -33,3 +33,21 @@ For metrics that rely on R, you may need to set the `R_HOME` environment variabl
 ```python
 os.environ["R_HOME"] = "<path/to/R/in/sc-complete-metrics/environment>" 
 ```
+
+### Running the eight core metrics
+
+To run the eight metrics suggested by our evaluation of single-cell data integration benchmarking, run `metrics_core`:
+
+```python
+from scib.metrics import metrics_core
+metric_vals = metrics_core(adata, adata_int, batch_key, label_key, embed)
+```
+
+To run all the metrics cataloged, run `metrics_all`:
+
+```python
+from scib.metrics import metrics_all
+metric_vals = metrics_all(adata, adata_int, batch_key, label_key, embed)
+```
+
+For full documentation of each metric and `metrics_core`/`metrics_all`, please consult the [wiki](https://github.com/Ding-Group/sc-complete-metrics/wiki/sc%E2%80%90complete%E2%80%90metrics-wiki).

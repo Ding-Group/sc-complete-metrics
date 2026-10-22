@@ -1,2 +1,4 @@
-"""Kept for backwards compatibility: ``final_metrics`` now lives in :mod:`scib.metrics.metrics`."""
-from .metrics import final_metrics, metrics  # noqa: F401
+"""Kept for backwards compatibility: ``final_metrics`` was renamed to :func:`scib.metrics.metrics.metrics_core`."""
+from .metrics import metrics, metrics_core
+
+final_metrics = metrics_core
