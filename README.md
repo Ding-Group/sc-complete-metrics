@@ -50,4 +50,4 @@ from scib.metrics import metrics_all
 metric_vals = metrics_all(adata, adata_int, batch_key, label_key, embed)
 ```
 
-For full documentation of each metric and `metrics_core`/`metrics_all`, please consult the [wiki](https://github.com/Ding-Group/sc-complete-metrics/wiki/sc%E2%80%90complete%E2%80%90metrics-wiki).
+For full documentation of each metric and `metrics_core`/`metrics_all`, please consult the [wiki](https://github.com/Ding-Group/sc-complete-metrics/wiki).
