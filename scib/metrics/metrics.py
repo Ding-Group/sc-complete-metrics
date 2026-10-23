@@ -1237,7 +1237,7 @@ def metrics(
         clust_dbi_score = np.nan
 
     if embdiv_:
-        print("KNN divergence...")
+        print("Embedding divergence...")
         emb_div_score = embedding_divergence(adata_int, label_key, batch_key, embed)
     else:
         emb_div_score = np.nan

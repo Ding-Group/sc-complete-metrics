@@ -8,7 +8,7 @@ dependencies:
   - pip
   # compiled dependencies come from conda-forge so pip never builds them from source
   - numpy
-  - pandas>=2
+  - "pandas>=2,<3"
   - scipy
   - scikit-learn
   - numba
@@ -35,4 +35,5 @@ dependencies:
   - pip:
       - rpy2>=3
       - anndata2ri
-      - .
+      - harmonypy
+      - git+https://github.com/Ding-Group/sc-complete-metrics

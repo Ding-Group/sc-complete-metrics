@@ -3,14 +3,20 @@
 This repository contains the complete implementations of 80 metrics used the manuscript "Comprehensive evaluation of single-cell data integration benchmarking".
 This library builds off of [scib](https://github.com/theislab/scib) by adding the additional metrics.
 
-## Installation
+## Installation (core metrics)
 
 ```bash
+git clone https://github.com/Ding-Group/sc-complete-metrics.git
 pip install .
-pip install ".[rpy2]" 
 ```
 
-### Metrics that require R
+or
+
+```bash
+pip install git+https://github.com/Ding-Group/sc-complete-metrics
+```
+
+### Metrics that require R (full metrics)
 
 `cell_specific_mixing_score` and `ldf_diff` call R through `rpy2`.
 `pip` cannot install R itself, so these need an R installation plus the packages below.
@@ -51,3 +57,5 @@ metric_vals = metrics_all(adata, adata_int, batch_key, label_key, embed)
 ```
 
 For full documentation of each metric and `metrics_core`/`metrics_all`, please consult the [wiki](https://github.com/Ding-Group/sc-complete-metrics/wiki).
+
+An example notebook is provided `example.ipynb`.
