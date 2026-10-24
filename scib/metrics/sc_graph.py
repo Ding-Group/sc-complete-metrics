@@ -32,7 +32,7 @@ def scgraph(
     thres_batch: int = 100,
     thres_celltype: int = 10,
     pca_comps: int = 10
-) -> float:
+) -> tuple[float]:
     """scGraph (SCGRAPH, SCGRAPHP, SCGRAPHM)
 
     The scGraph metric that measures whether distances in the integrated
@@ -58,7 +58,7 @@ def scgraph(
     :param thres_celltype: Minimum number of cells for the cell type to be
         included in SCGRAPH computation
     :param pca_comps: Number of components to use for PCA in the unintegrated data.
-    :return: scGraph score
+    :return: Tuple of scGraph score (Spearman correlation, Pearson correlation, and weighted correlation)
     """
     check_adata(adata)
     check_batch(batch_key, adata.obs)
