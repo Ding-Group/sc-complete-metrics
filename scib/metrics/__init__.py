@@ -123,7 +123,6 @@ __all__ = [
     "matthews_corrcoef",
     "metrics",
     "metrics_all",
-    "metrics_fast",
     "metrics_slim",
     "mixing",
     "modularity",
