@@ -12,7 +12,7 @@ from ..utils import check_adata, check_batch
 
 
 def fisher_poisson(m1, m2):
-    return np.sum( 2 * np.abs(np.sqrt(m1) - np.sqrt(m2)) )
+    return np.sqrt(np.sum( np.square(2 * np.abs(np.sqrt(m1) - np.sqrt(m2))) ))
 
 
 def fisher_multinomial(m1, m2):
